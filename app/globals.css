@@ -1,26 +1,89 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --terminal-bg: #0a0a0a;
+  --terminal-text: #00ff00;
+  --terminal-amber: #ffb000;
+  --terminal-red: #ff5555;
+  --terminal-yellow: #f1fa8c;
+  --terminal-cyan: #8be9fd;
+  --terminal-purple: #bd93f9;
+  --terminal-font: var(--font-fira-code), 'Courier New', monospace;
+  --cursor-blink-speed: 1s;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--terminal-bg);
+  --color-foreground: var(--terminal-text);
+  --font-mono: var(--terminal-font);
 }
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --terminal-bg: #f8f8f8;
+    --terminal-text: #333333;
+    --terminal-amber: #d7ba7d;
+    --terminal-red: #f44747;
+    --terminal-yellow: #ffd700;
+    --terminal-cyan: #4ec9b0;
+    --terminal-purple: #c586c0;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--terminal-bg);
+  color: var(--terminal-text);
+  font-family: var(--terminal-font);
+  font-feature-settings: "liga" 1, "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Cursor blink animation */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.cursor-blink {
+  animation: blink var(--cursor-blink-speed) step-end infinite;
+}
+
+/* Typing animation (optional, can be controlled via JS) */
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--terminal-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--terminal-amber);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--terminal-text);
+}
+
+/* Focus styles */
+input:focus {
+  outline: none;
+}
+
+/* Prevent text selection in terminal for authenticity */
+.terminal-selectable {
+  user-select: text;
+}
+
+.terminal-no-select {
+  user-select: none;
 }
