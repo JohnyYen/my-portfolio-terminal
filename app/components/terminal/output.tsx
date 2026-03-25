@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 
 interface OutputLine {
-  type: 'stdout' | 'stderr' | 'stdin' | 'info';
+  type: 'stdout' | 'stderr' | 'stdin' | 'info' | 'success' | 'warning' | 'boot-ok' | 'boot-info' | 'boot-warning';
   content: string;
   timestamp: number;
 }
@@ -13,114 +13,147 @@ interface OutputProps {
   typingSpeed?: number;
 }
 
-export default function Output({ lines, typingSpeed = 10 }: OutputProps) {
+export default function Output({ lines, typingSpeed = 8 }: OutputProps) {
   const [displayedLines, setDisplayedLines] = useState<OutputLine[]>([]);
   const [currentTyping, setCurrentTyping] = useState<{ lineIndex: number; charIndex: number } | null>(null);
   const outputRef = useRef<HTMLDivElement>(null);
+  const lastProcessedIndex = useRef<number>(-1);
 
-  // Handle typing animation for new lines
+  // Handle new lines - start typing animation for new lines
   useEffect(() => {
-    if (lines.length === 0) return;
-
-    const lastLine = lines[lines.length - 1];
-    const lastDisplayedLine = displayedLines[displayedLines.length - 1];
-
-    // If this is a new line that hasn't been displayed yet
-    if (!lastDisplayedLine || lastLine.timestamp !== lastDisplayedLine.timestamp) {
-      setCurrentTyping({ lineIndex: lines.length - 1, charIndex: 0 });
+    if (lines.length === 0) {
+      setDisplayedLines([]);
+      lastProcessedIndex.current = -1;
+      return;
     }
-  }, [lines, displayedLines]);
 
-  // Typing animation
+    // Find new lines that haven't been processed
+    const lastLineIndex = lines.length - 1;
+    
+    if (lastLineIndex > lastProcessedIndex.current) {
+      // New line(s) added - start typing the latest one
+      setCurrentTyping({ lineIndex: lastLineIndex, charIndex: 0 });
+    }
+  }, [lines.length]);
+
+  // Typing animation effect
   useEffect(() => {
-    if (!currentTyping) return;
+    if (currentTyping === null) return;
 
     const { lineIndex, charIndex } = currentTyping;
     const line = lines[lineIndex];
 
-    if (!line) return;
+    if (!line) {
+      setCurrentTyping(null);
+      return;
+    }
 
+    // Skip typing for empty lines
+    if (line.content.length === 0) {
+      // Update displayed lines with empty content
+      setDisplayedLines(prev => {
+        const newLines = [...prev];
+        newLines[lineIndex] = { ...line, content: '' };
+        return newLines;
+      });
+      lastProcessedIndex.current = lineIndex;
+      setCurrentTyping(null);
+      return;
+    }
+
+    // Continue typing
     if (charIndex < line.content.length) {
       const timeout = setTimeout(() => {
         setCurrentTyping({ lineIndex, charIndex: charIndex + 1 });
         
-        // Update displayed lines
-        const newDisplayedLines = [...displayedLines];
-        if (newDisplayedLines[lineIndex]) {
-          newDisplayedLines[lineIndex] = {
+        // Update displayed content with partial text
+        setDisplayedLines(prev => {
+          const newLines = [...prev];
+          newLines[lineIndex] = {
             ...line,
             content: line.content.substring(0, charIndex + 1)
           };
-        } else {
-          newDisplayedLines[lineIndex] = {
-            ...line,
-            content: line.content.substring(0, charIndex + 1)
-          };
-        }
-        setDisplayedLines(newDisplayedLines);
+          return newLines;
+        });
       }, typingSpeed);
 
       return () => clearTimeout(timeout);
     } else {
-      // Line is complete
+      // Typing complete for this line
+      lastProcessedIndex.current = lineIndex;
       setCurrentTyping(null);
     }
-  }, [currentTyping, lines, displayedLines, typingSpeed]);
+  }, [currentTyping, lines, typingSpeed]);
 
-  // Auto-scroll to bottom
+  // Auto-scroll to bottom when content changes
   useEffect(() => {
     if (outputRef.current) {
       outputRef.current.scrollTop = outputRef.current.scrollHeight;
     }
-  }, [displayedLines]);
+  }, [displayedLines, currentTyping]);
 
-  // Initialize with all completed lines
-  useEffect(() => {
-    if (!currentTyping && lines.length > displayedLines.length) {
-      setDisplayedLines(lines);
-    }
-  }, [lines, currentTyping, displayedLines.length]);
-
-  const getLineClass = (type: OutputLine['type']) => {
+  const getLineClass = (type?: string) => {
     switch (type) {
       case 'stderr':
-        return 'text-[#ff5555]';
+        return 'output-stderr';
       case 'stdin':
-        return 'text-[#f8f8f8] font-bold';
+        return 'output-stdout font-semibold';
       case 'info':
-        return 'text-[#ffb000]';
-      case 'stdout':
+        return 'output-info';
+      case 'success':
+        return 'output-success';
+      case 'warning':
+        return 'output-warning';
+      case 'boot-ok':
+        return 'boot-ok';
+      case 'boot-info':
+        return 'boot-info';
+      case 'boot-warning':
+        return 'boot-warning';
       default:
-        return 'text-[#00ff00]';
+        return 'output-stdout';
     }
+  };
+
+  const isTypingThisLine = (index: number) => {
+    return currentTyping !== null && currentTyping.lineIndex === index;
   };
 
   return (
     <div 
       ref={outputRef}
-      className="flex-1 overflow-y-auto py-2 terminal-selectable"
+      className="flex-1 terminal-selectable space-y-0.5"
       role="log"
       aria-live="polite"
       aria-label="Terminal output"
     >
-      {displayedLines.map((line, index) => (
-        <div 
-          key={`${line.timestamp}-${index}`}
-          className={`${getLineClass(line.type)} whitespace-pre-wrap break-words`}
-        >
-          {line.content}
-        </div>
-      ))}
-      
-      {/* Typing indicator */}
-      {currentTyping && (
-        <div className="inline-flex items-center">
-          <span className={`text-[#00ff00]`}>
-            {lines[currentTyping.lineIndex]?.content.substring(0, currentTyping.charIndex)}
-          </span>
-          <span className="inline-block w-[8px] h-[16px] bg-[#00ff00] cursor-blink ml-[1px]" />
-        </div>
-      )}
+      {displayedLines.map((line, index) => {
+        // Safety check - skip if line is undefined
+        if (!line || typeof line !== 'object') {
+          return null;
+        }
+
+        const isTyping = isTypingThisLine(index);
+        const displayContent = isTyping 
+          ? (line.content || '').substring(0, currentTyping?.charIndex || 0)
+          : (line.content || '');
+
+        return (
+          <div 
+            key={`${line.timestamp || index}-${index}`}
+            className={`${getLineClass(line.type)} whitespace-pre-wrap break-words leading-relaxed`}
+          >
+            {isTyping ? (
+              <span className="inline">
+                {displayContent}
+                <span className="inline-block w-[8px] h-[16px] bg-[var(--starship-green)] cursor-blink cursor-glow ml-[1px] align-middle" />
+              </span>
+            ) : (
+              displayContent || '\u00A0'
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

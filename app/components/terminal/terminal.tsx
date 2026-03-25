@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import Output from './output';
 import Input from './input';
+import Prompt from './prompt';
 import { parseCommand, executeCommand, getAvailableCommands, CommandResult } from '../../commands/index';
 
 interface OutputLine {
-  type: 'stdout' | 'stderr' | 'stdin' | 'info';
+  type: 'stdout' | 'stderr' | 'stdin' | 'info' | 'success' | 'warning';
   content: string;
   timestamp: number;
 }
@@ -27,6 +28,8 @@ export default function Terminal({
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [currentPath] = useState('~');
   const [isReady, setIsReady] = useState(false);
+  const [showBoot, setShowBoot] = useState(true);
+  const terminalRef = useRef<HTMLDivElement>(null);
 
   const availableCommands = getAvailableCommands();
 
@@ -51,10 +54,8 @@ export default function Terminal({
       return;
     }
 
-    // Add the command to output as input
-    addOutput('stdin', `${username}@${hostname}:${currentPath}$ ${command}`);
-    
-    // Add to history
+    // Add the command to output as input using Starship-style prompt
+    addOutput('stdin', ''); // Empty line before command
     setCommandHistory(prev => [...prev, command]);
     setHistoryIndex(-1);
 
@@ -62,13 +63,13 @@ export default function Terminal({
     const result: CommandResult = executeCommand(parsed);
 
     // Add output
-    if (result.output) {
+    if (result.output && result.output.length > 0) {
       result.output.forEach((line: string) => {
         addOutput(result.type || 'stdout', line);
       });
     }
 
-    // Add empty line after command
+    // Add small spacing after command output
     addOutput('stdout', '');
   }, [addOutput, username, hostname, currentPath]);
 
@@ -98,22 +99,53 @@ export default function Terminal({
     return commandHistory[newIndex];
   }, [commandHistory, historyIndex]);
 
-  // Initialize terminal
+  // Boot sequence animation
   useEffect(() => {
     if (!isReady) {
-      // Welcome message
-      addOutput('info', '╔══════════════════════════════════════════════════════════════════╗');
-      addOutput('info', '║                                                                  ║');
-      addOutput('info', '║   Welcome to my Terminal Portfolio                               ║');
-      addOutput('info', '║   Type "help" to see available commands                          ║');
-      addOutput('info', '║                                                                  ║');
-      addOutput('info', '╚══════════════════════════════════════════════════════════════════╝');
-      addOutput('stdout', '');
-      
-      setIsReady(true);
-      onReady?.();
+      const bootMessages = [
+        { type: 'info' as const, text: '[  OK  ] Reached target Graphical Interface', delay: 100 },
+        { type: 'info' as const, text: '[  OK  ] Started Terminal Portfolio Service', delay: 200 },
+        { type: 'info' as const, text: '[  OK  ] Loaded Starship Prompt Configuration', delay: 150 },
+        { type: 'stdout' as const, text: '', delay: 100 },
+        { type: 'stdout' as const, text: '  ╔═══════════════════════════════════════════════════════════╗', delay: 50 },
+        { type: 'stdout' as const, text: '  ║                                                           ║', delay: 50 },
+        { type: 'stdout' as const, text: '  ║   ████████╗███████╗██████╗ ███╗   ███╗██████╗ ██╗      ██████╗  ██████╗  ║', delay: 30 },
+        { type: 'stdout' as const, text: '  ║   ╚══██╔══╝██╔════╝██╔══██╗████╗ ████║██╔══██╗██║     ██╔═══██╗██╔════╝  ║', delay: 30 },
+        { type: 'stdout' as const, text: '  ║      ██║   █████╗  ██████╔╝██╔████╔██║██████╔╝██║     ██║   ██║██║  ███╗ ║', delay: 30 },
+        { type: 'stdout' as const, text: '  ║      ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║██╔══██╗██║     ██║   ██║██║   ██║ ║', delay: 30 },
+        { type: 'stdout' as const, text: '  ║      ██║   ███████╗██║  ██║██║ ╚═╝ ██║██████╔╝███████╗╚██████╔╝╚██████╔╝ ║', delay: 30 },
+        { type: 'stdout' as const, text: '  ║      ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═════╝ ╚══════╝ ╚═════╝  ╚═════╝  ║', delay: 30 },
+        { type: 'stdout' as const, text: '  ║                                                           ║', delay: 50 },
+        { type: 'stdout' as const, text: '  ╚═══════════════════════════════════════════════════════════╝', delay: 50 },
+        { type: 'stdout' as const, text: '', delay: 100 },
+        { type: 'stdout' as const, text: '  Welcome to my Interactive Terminal Portfolio', delay: 100 },
+        { type: 'stdout' as const, text: '  Type "help" to see available commands', delay: 100 },
+        { type: 'stdout' as const, text: '  Use Tab for autocomplete • ↑↓ for history', delay: 100 },
+        { type: 'stdout' as const, text: '', delay: 100 },
+      ];
+
+      let currentDelay = 0;
+      bootMessages.forEach((msg) => {
+        currentDelay += msg.delay;
+        setTimeout(() => {
+          addOutput(msg.type, msg.text);
+        }, currentDelay);
+      });
+
+      setTimeout(() => {
+        setIsReady(true);
+        setShowBoot(false);
+        onReady?.();
+      }, currentDelay + 200);
     }
   }, [isReady, addOutput, onReady]);
+
+  // Auto-scroll to bottom
+  useEffect(() => {
+    if (terminalRef.current) {
+      terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+    }
+  }, [outputLines]);
 
   // Focus terminal when clicked
   const handleTerminalClick = () => {
@@ -123,34 +155,63 @@ export default function Terminal({
 
   return (
     <div 
-      className="h-screen w-full bg-[#0a0a0a] text-[#00ff00] font-mono p-4 flex flex-col"
+      className="min-h-screen w-full bg-[var(--terminal-bg)] flex items-center justify-center p-4"
       onClick={handleTerminalClick}
     >
-      <div className="flex-1 flex flex-col max-w-4xl w-full mx-auto">
-        {/* Terminal header */}
-        <div className="flex items-center gap-2 mb-4 pb-2 border-b border-[#333]">
-          <div className="flex gap-2">
-            <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
-            <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
-            <div className="w-3 h-3 rounded-full bg-[#27ca3f]" />
+      {/* Terminal Window */}
+      <div className="terminal-chrome w-full max-w-4xl h-[90vh] max-h-[800px] flex flex-col overflow-hidden animate-fade-in">
+        {/* Terminal Header */}
+        <div className="terminal-header flex items-center justify-between px-4 py-3 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            {/* Traffic lights */}
+            <div className="flex gap-2 mr-4">
+              <button className="traffic-light close" aria-label="Close" />
+              <button className="traffic-light minimize" aria-label="Minimize" />
+              <button className="traffic-light maximize" aria-label="Maximize" />
+            </div>
+            
+            {/* Terminal title */}
+            <span className="terminal-title flex items-center gap-2">
+              <span className="text-[var(--starship-cyan)]">⌘</span>
+              <span>{username}@{hostname}: {currentPath}</span>
+            </span>
           </div>
-          <span className="text-[#888] ml-4">
-            {username}@{hostname}: {currentPath}
-          </span>
+          
+          {/* Right side indicators */}
+          <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
+            <span className="flex items-center gap-1">
+              <span className="text-[var(--starship-green)]">●</span>
+              <span>Connected</span>
+            </span>
+          </div>
         </div>
 
-        {/* Terminal content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <Output lines={outputLines} typingSpeed={5} />
+        {/* Terminal Content */}
+        <div 
+          ref={terminalRef}
+          className="flex-1 overflow-y-auto p-4 terminal-selectable"
+        >
+          {/* Output Lines */}
+          <Output lines={outputLines} typingSpeed={3} />
           
-          {isReady && (
-            <Input
-              onSubmit={handleCommand}
-              commands={availableCommands}
-              commandHistory={commandHistory}
-              onHistoryUp={getHistoryUp}
-              onHistoryDown={getHistoryDown}
-            />
+          {/* Input Area - only show when ready */}
+          {isReady && !showBoot && (
+            <div className="terminal-input-container -mx-4 px-4 py-2 mt-2 animate-slide-up">
+              <Input
+                onSubmit={handleCommand}
+                commands={availableCommands}
+                commandHistory={commandHistory}
+                onHistoryUp={getHistoryUp}
+                onHistoryDown={getHistoryDown}
+                promptComponent={
+                  <Prompt 
+                    username={username}
+                    hostname={hostname}
+                    currentPath={currentPath}
+                  />
+                }
+              />
+            </div>
           )}
         </div>
       </div>

@@ -10,6 +10,7 @@ interface InputProps {
   onHistoryUp: () => string | null;
   onHistoryDown: () => string | null;
   disabled?: boolean;
+  promptComponent?: React.ReactNode;
 }
 
 export default function Input({ 
@@ -18,13 +19,15 @@ export default function Input({
   commandHistory,
   onHistoryUp,
   onHistoryDown,
-  disabled = false 
+  disabled = false,
+  promptComponent
 }: InputProps) {
   const [inputValue, setInputValue] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [selectedSuggestion, setSelectedSuggestion] = useState(0);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const cursorRef = useRef<HTMLSpanElement>(null);
 
   // Update suggestions based on input
   useEffect(() => {
@@ -45,6 +48,13 @@ export default function Input({
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  // Calculate cursor position
+  const getCursorPosition = useCallback(() => {
+    // Approximate character width for monospace font
+    const charWidth = 8.4;
+    return inputValue.length * charWidth;
+  }, [inputValue]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (disabled) return;
@@ -110,8 +120,11 @@ export default function Input({
   return (
     <div className="relative">
       <div className="flex items-center">
-        <Prompt />
-        <div className="flex-1 relative">
+        {/* Prompt */}
+        {promptComponent || <Prompt />}
+        
+        {/* Input container */}
+        <div className="flex-1 relative flex items-center">
           <input
             ref={inputRef}
             type="text"
@@ -119,7 +132,7 @@ export default function Input({
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={disabled}
-            className="w-full bg-transparent text-[#00ff00] caret-transparent focus:outline-none"
+            className="w-full bg-transparent text-[var(--text-primary)] caret-transparent focus:outline-none py-1 font-mono"
             placeholder=""
             aria-label="Terminal input"
             autoComplete="off"
@@ -127,31 +140,39 @@ export default function Input({
             spellCheck="false"
           />
           
-          {/* Custom cursor */}
+          {/* Custom glowing cursor */}
           <span 
-            className="absolute top-0 inline-block w-[10px] h-[20px] bg-[#00ff00] cursor-blink pointer-events-none"
+            ref={cursorRef}
+            className="absolute top-1/2 -translate-y-1/2 inline-block w-[8px] h-[18px] bg-[var(--starship-green)] cursor-blink cursor-glow pointer-events-none rounded-sm"
             style={{ 
-              left: `${inputValue.length * 0.6}em`,
+              left: `${getCursorPosition()}px`,
             }}
             aria-hidden="true"
           />
         </div>
       </div>
 
-      {/* Autocomplete suggestions */}
-      {showSuggestions && (
-        <div className="absolute left-0 top-full mt-1 bg-[#1e1e1e] border border-[#333] rounded shadow-lg z-10 min-w-[200px]">
+      {/* Autocomplete suggestions dropdown */}
+      {showSuggestions && suggestions.length > 0 && (
+        <div className="autocomplete-dropdown absolute left-0 top-full mt-2 py-1 z-10 min-w-[220px]">
+          <div className="px-2 py-1 text-xs text-[var(--text-muted)] border-b border-[var(--terminal-border)] mb-1">
+            Suggestions
+          </div>
           {suggestions.map((suggestion, index) => (
             <div
               key={suggestion}
-              className={`px-3 py-2 cursor-pointer ${
+              className={`autocomplete-item px-3 py-1.5 cursor-pointer flex items-center gap-2 ${
                 index === selectedSuggestion 
-                  ? 'bg-[#094771] text-[#fff]' 
-                  : 'text-[#cccccc] hover:bg-[#2a2d2e]'
+                  ? 'selected text-[var(--text-primary)]' 
+                  : 'text-[var(--text-secondary)]'
               }`}
               onClick={() => handleSuggestionClick(suggestion)}
             >
-              {suggestion}
+              <span className="text-[var(--starship-cyan)] text-xs">›</span>
+              <span>{suggestion}</span>
+              {index === selectedSuggestion && (
+                <span className="ml-auto text-xs text-[var(--text-muted)]">Tab ↹</span>
+              )}
             </div>
           ))}
         </div>
