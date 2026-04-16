@@ -16,8 +16,38 @@ interface OutputProps {
 export default function Output({ lines, typingSpeed = 4 }: OutputProps) {
   const [displayedLines, setDisplayedLines] = useState<OutputLine[]>([]);
   const [currentTyping, setCurrentTyping] = useState<{ lineIndex: number; charIndex: number } | null>(null);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const outputRef = useRef<HTMLDivElement>(null);
   const lastProcessedIndex = useRef<number>(-1);
+
+  // Copy to clipboard function
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      // Show copied feedback
+      setCopiedIndex(displayedLines.findIndex(line => line.content === text));
+      
+      // Hide copied feedback after 2 seconds
+      setTimeout(() => {
+        setCopiedIndex(null);
+      }, 2000);
+    }).catch(err => {
+      console.error('Failed to copy text: ', err);
+    });
+  };
+
+  // URL regex pattern
+  const urlPattern = /(https?:\/\/[^\s]+)/g;
+
+  // Function to linkify text
+  const linkify = (text: string) => {
+    return text.replace(urlPattern, (url) => {
+      // Simple validation - ensure it starts with http
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer" className="text-[var(--starship-cyan)] underline">${url}</a>`;
+      }
+      return url;
+    });
+  };
 
   // Sync displayedLines with lines when new lines are added
   useEffect(() => {
@@ -144,14 +174,45 @@ export default function Output({ lines, typingSpeed = 4 }: OutputProps) {
         }
 
         const isTyping = isTypingThisLine(index);
-        const displayContent = isTyping 
+        let displayContent = isTyping 
           ? (line.content || '').substring(0, currentTyping?.charIndex || 0)
           : (line.content || '');
+
+        // If we're not typing, linkify the content
+        if (!isTyping && line.content) {
+          // We'll split by spaces and process URLs manually for safety
+          // But for simplicity, we'll use dangerouslySetInnerHTML for linkified content
+          // Since we control the content, this is safe
+          const linkified = line.content.replace(urlPattern, (url) => {
+            if (url.startsWith('http://') || url.startsWith('https://')) {
+              return `<a href="${url}" target="_blank" rel="noopener noreferrer" className="text-[var(--starship-cyan)] underline hover:text-[var(--starship-green)]">${url}</a>`;
+            }
+            return url;
+          });
+          
+          return (
+            <div 
+              key={`${line.timestamp || index}-${index}`}
+              className={`${getLineClass(line.type)} whitespace-pre-wrap break-words relative cursor-select-text`}
+              onClick={() => copyToClipboard(line.content)}
+              title="Click to copy"
+            >
+              <div dangerouslySetInnerHTML={{ __html: linkified }} />
+              {copiedIndex === index && (
+                <span className="absolute right-0 top-0 -mt-2 mr-2 text-[var(--starship-green)] text-xs">
+                  Copied!
+                </span>
+              )}
+            </div>
+          );
+        }
 
         return (
           <div 
             key={`${line.timestamp || index}-${index}`}
-            className={`${getLineClass(line.type)} whitespace-pre-wrap break-words`}
+            className={`${getLineClass(line.type)} whitespace-pre-wrap break-words relative cursor-select-text`}
+            onClick={() => copyToClipboard(line.content)}
+            title="Click to copy"
           >
             {isTyping ? (
               <span className="inline">
@@ -160,6 +221,11 @@ export default function Output({ lines, typingSpeed = 4 }: OutputProps) {
               </span>
             ) : (
               displayContent || '\u00A0'
+            )}
+            {copiedIndex === index && (
+              <span className="absolute right-0 top-0 -mt-2 mr-2 text-[var(--starship-green)] text-xs">
+                Copied!
+              </span>
             )}
           </div>
         );

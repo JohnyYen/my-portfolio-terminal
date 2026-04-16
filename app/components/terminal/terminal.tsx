@@ -29,7 +29,29 @@ export default function Terminal({
   const [currentPath] = useState('~');
   const [isReady, setIsReady] = useState(false);
   const [currentCommand, setCurrentCommand] = useState('Terminal');
+  const [isExecuting, setIsExecuting] = useState(false);
   const terminalRef = useRef<HTMLDivElement>(null);
+
+  // Load history from localStorage on mount
+  useEffect(() => {
+    const savedHistory = localStorage.getItem('terminalHistory');
+    if (savedHistory) {
+      try {
+        const parsed = JSON.parse(savedHistory);
+        if (Array.isArray(parsed)) {
+          setCommandHistory(parsed);
+          setHistoryIndex(parsed.length); // Point to end (ready for new command)
+        }
+      } catch (e) {
+        console.warn('Failed to parse terminal history from localStorage', e);
+      }
+    }
+  }, []);
+
+  // Save history to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('terminalHistory', JSON.stringify(commandHistory));
+  }, [commandHistory]);
 
   const availableCommands = getAvailableCommands();
 
@@ -40,7 +62,11 @@ export default function Terminal({
     ]);
   }, []);
 
-  const handleCommand = useCallback((command: string) => {
+    const handleCommand = useCallback(async (command: string) => {
+  // Show processing indicator
+  setIsExecuting(true);
+  
+  try {
     const parsed = parseCommand(command);
     
     // Check for clear command
@@ -51,7 +77,7 @@ export default function Terminal({
       setCurrentCommand('Terminal');
       return;
     }
-
+    
     // Check for exit command
     if (parsed.command === 'exit' || parsed.command === 'quit' || parsed.command === 'q') {
       setOutputLines([]);
@@ -65,28 +91,32 @@ export default function Terminal({
       setCurrentCommand('Goodbye');
       return;
     }
-
+    
     setCommandHistory(prev => [...prev, command]);
     setHistoryIndex(-1);
-
+    
     const result: any = executeCommand(parsed);
-
+    
     // Update window title with command
     setCurrentCommand(parsed.command || 'Terminal');
-
+    
     // Handle clear flag from command result
     if (result.clearOutput) {
       setOutputLines([]);
     }
-
+    
     if (result.output && result.output.length > 0) {
       result.output.forEach((line: string) => {
         addOutput(result.type || 'stdout', line);
       });
     }
-
+    
     addOutput('stdout', '');
-  }, [addOutput]);
+  } finally {
+    // Hide processing indicator
+    setIsExecuting(false);
+  }
+}, [addOutput]);
 
   const getHistoryUp = useCallback(() => {
     if (commandHistory.length === 0) return null;
@@ -191,6 +221,11 @@ export default function Terminal({
           <div className="terminal-title">
             <span style={{ color: 'var(--starship-cyan)' }}>⌘</span>
             <span>{username}@{hostname}: {currentPath}</span>
+            {isExecuting && (
+              <span className="ml-2 animate-spin text-[var(--starship-green)] text-xs">
+                ●
+              </span>
+            )}
           </div>
           
           {/* Spacer for centering */}
