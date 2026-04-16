@@ -54,6 +54,20 @@ export default function Input({
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (disabled) return;
 
+    // Ctrl+C - Interrupt/Cancel
+    if (e.key === 'c' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      setInputValue('');
+      return;
+    }
+
+    // Ctrl+L - Clear terminal (handled by parent)
+    if (e.key === 'l' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      onSubmit('clear');
+      return;
+    }
+
     switch (e.key) {
       case 'Tab':
         e.preventDefault();

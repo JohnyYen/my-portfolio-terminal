@@ -9,6 +9,7 @@ export interface Command {
 export interface CommandResult {
   output: string[];
   type: 'stdout' | 'stderr' | 'info';
+  clearOutput?: boolean;
 }
 
 export interface ParsedCommand {
@@ -47,8 +48,11 @@ const DRAGON_ASCII = `
         ██║ ╚████║███████╗██╔╝ ╚██╗╚██████╔╝███████║
         ╚═╝  ╚═══╝╚══════╝╚═╝   ╚═╝ ╚═════╝ ╚══════╝`;
 
-// Import projects from JSON
+// Import data from JSON
 import projectsData from '../data/projects.json';
+import aboutData from '../data/about.json';
+import skillsData from '../data/skills.json';
+import socialData from '../data/social.json';
 
 // Command registry
 const commands: Command[] = [
@@ -68,13 +72,16 @@ const commands: Command[] = [
         '  social      - Social links',
         '  contact     - How to reach me',
         '  clear, cls  - Clear the terminal',
+        '  exit        - Exit the terminal',
         '  whoami      - Display current user',
         '  date        - Show current date/time',
         '  echo        - Print text',
         '',
-        'Tips:',
-        '  - Use Tab for autocomplete',
-        '  - Use ↑/↓ arrows for command history',
+        'Shortcuts:',
+        '  Ctrl+C      - Interrupt/Cancel current input',
+        '  Ctrl+L      - Clear the terminal',
+        '  Tab         - Autocomplete command',
+        '  ↑/↓         - Command history',
       ],
       type: 'stdout' as const
     })
@@ -82,71 +89,78 @@ const commands: Command[] = [
   {
     name: 'about',
     description: 'Learn about me',
-    handler: () => ({
-      output: [
-        '═ ABOUT ──────────────────────────────────────────',
-        '',
-        '👋 Hi! I\'m Johny A. Pedraza Romero',
-        '',
-        '💼 Backend Engineer in Evolution',
-        '   Currently focused on building robust APIs and exploring',
-        '   software architecture patterns for scalable systems.',
-        '',
-        '🎯 Current Focus:',
-        '   • Software Architecture - Designing maintainable',
-        '     systems, understanding DDD, Clean Architecture,',
-        '     and system design principles.',
-        '   • AI Engineering - Learning ML integration, building',
-        '     AI-powered features, and understanding LLM patterns.',
-        '',
-        '🔧 What I build:',
-        '   • APIs with FastAPI & NestJS',
-        '   • Developer templates & boilerplates',
-        '   • Clean Architecture patterns',
-        '',
-        '📚 Learning Journey:',
-        '   Currently diving deep into system design and exploring',
-        '   how AI/ML can enhance developer productivity.',
-        '   Open to architecture discussions and collaboration!',
-        '',
-        '→ Try "fetch" for a quick summary of me!',
-      ],
-      type: 'stdout' as const
-    })
+    handler: () => {
+      const focusLines = aboutData.currentFocus.map(f => 
+        `   • ${f.title} - ${f.description}`
+      ).join('\n');
+      
+      const buildLines = aboutData.whatIBuild.map(item => 
+        `   • ${item}`
+      ).join('\n');
+
+      return {
+        output: [
+          '═ ABOUT ──────────────────────────────────────────',
+          '',
+          `👋 Hi! I'm ${aboutData.username}`,
+          '',
+          `💼 ${aboutData.tagline}`,
+          `   ${aboutData.description}`,
+          '',
+          '🎯 Current Focus:',
+          focusLines,
+          '',
+          '🔧 What I build:',
+          buildLines,
+          '',
+          '📚 Learning Journey:',
+          `   ${aboutData.learningJourney}`,
+          '',
+          '→ Try "fetch" for a quick summary of me!',
+        ],
+        type: 'stdout' as const
+      };
+    }
   },
   {
     name: 'fetch',
     description: 'Show quick system info (fastfetch-style)',
-    handler: () => ({
-      output: [
-        DRAGON_ASCII,
-        '',
-        '╭───────────────────╮',
-        '│   user@portfolio  │',
-        '╰───────────────────╯',
-        '',
-        '  ┌─ Info',
-        '  │  OS:      Terminal Portfolio v1.0',
-        '  │  Host:    JohnyYen',
-        '  │  Kernel:  React + Next.js',
-        '  │  Shell:   Custom Terminal',
-        '  │',
-        '  ├─ Tech Stack',
-        '  │  Backend:  Python (FastAPI), Node.js (NestJS)',
-        '  │  Database: PostgreSQL, Prisma, SQLAlchemy',
-        '  │  DevOps:   Docker, GitHub Actions',
-        '  │',
-        '  ├─ Currently Learning',
-        '  │  • Software Architecture',
-        '  │  • AI/ML Engineering',
-        '  │',
-        '  └─ Location',
-        '     🌎 Available remotely',
-        '',
-        'Type "about" for more details!',
-      ],
-      type: 'stdout' as const
-    }),
+    handler: () => {
+      const backend = skillsData.backend.join(', ');
+      const database = skillsData.database.join(', ');
+      const devops = skillsData.devops.join(', ');
+      const learning = skillsData.learning.map(l => l.category).join(', ');
+
+      return {
+        output: [
+          DRAGON_ASCII,
+          '',
+          '╭───────────────────╮',
+          '│   user@portfolio  │',
+          '╰───────────────────╯',
+          '',
+          '  ┌─ Info',
+          '  │  OS:      Terminal Portfolio v1.0',
+          `  │  Host:    ${aboutData.username.split(' ')[0]}`,
+          '  │  Kernel:  React + Next.js',
+          '  │  Shell:   Custom Terminal',
+          '  │',
+          '  ├─ Tech Stack',
+          `  │  Backend:  ${backend}`,
+          `  │  Database: ${database}`,
+          `  │  DevOps:   ${devops}`,
+          '  │',
+          '  ├─ Currently Learning',
+          ...skillsData.learning.map(l => `  │  • ${l.category}`),
+          '  │',
+          '  └─ Location',
+          '     🌎 Available remotely',
+          '',
+          'Type "about" for more details!',
+        ],
+        type: 'stdout' as const
+      };
+    },
     aliases: ['neofetch', 'sysinfo']
   },
   {
@@ -184,24 +198,29 @@ const commands: Command[] = [
   {
     name: 'skills',
     description: 'View my technical skills',
-    handler: () => ({
-      output: [
-        '═ SKILLS ──────────────────────────────────────────',
-        '',
-        'Backend:     Python (FastAPI) │ Node.js (NestJS)',
-        'Database:    PostgreSQL │ Prisma │ SQLAlchemy',
-        'DevOps:      Docker │ GitHub Actions',
-        'Tools:       TypeScript │ Git │ Vim',
-        '',
-        '📚 Currently Learning:',
-        '   • Software Architecture (DDD, Clean Architecture)',
-        '   • AI/ML Integration (LLMs, embeddings, RAG)',
-        '',
-        '→ Check "fetch" for a quick overview!',
-        '→ Check "projects" for my work!',
-      ],
-      type: 'stdout' as const
-    })
+    handler: () => {
+      const learningLines = skillsData.learning.map(l => 
+        `   • ${l.category} (${l.topics.join(', ')})`
+      ).join('\n');
+
+      return {
+        output: [
+          '═ SKILLS ──────────────────────────────────────────',
+          '',
+          `Backend:    ${skillsData.backend.join(' │ ')}`,
+          `Database:   ${skillsData.database.join(' │ ')}`,
+          `DevOps:     ${skillsData.devops.join(' │ ')}`,
+          `Tools:      ${skillsData.tools.join(' │ ')}`,
+          '',
+          '📚 Currently Learning:',
+          learningLines,
+          '',
+          '→ Check "fetch" for a quick overview!',
+          '→ Check "projects" for my work!',
+        ],
+        type: 'stdout' as const
+      };
+    }
   },
   {
     name: 'cv',
@@ -233,9 +252,9 @@ const commands: Command[] = [
       output: [
         '═ SOCIAL ───────────────────────────────────────────',
         '',
-        '🐙 GitHub:    github.com/JohnyYen',
-        '💼 LinkedIn:  linkedin.com/in/johnyyen',
-        '📧 Email:    (available on request)',
+        `🐙 GitHub:    ${socialData.github.replace('https://', '')}`,
+        `💼 LinkedIn:  ${socialData.linkedin.replace('https://', '')}`,
+        `📧 Email:     ${socialData.email}`,
         '',
       ],
       type: 'stdout' as const
@@ -250,9 +269,9 @@ const commands: Command[] = [
         '',
         '💬 Let\'s connect!',
         '',
-        '📧 Email:    johny.dev@email.com',
-        '💼 LinkedIn: linkedin.com/in/johnyyen',
-        '🐙 GitHub:   github.com/JohnyYen',
+        `📧 Email:    ${socialData.email}`,
+        `💼 LinkedIn: ${socialData.linkedin.replace('https://', '')}`,
+        `🐙 GitHub:   ${socialData.github.replace('https://', '')}`,
         '',
         'Open for:',
         '  • Backend development opportunities',
@@ -271,9 +290,24 @@ const commands: Command[] = [
     description: 'Clear the terminal',
     handler: () => ({
       output: [],
-      type: 'stdout' as const
+      type: 'stdout' as const,
+      clearOutput: true
     }),
     aliases: ['cls', 'reset']
+  },
+  {
+    name: 'exit',
+    description: 'Exit the terminal',
+    handler: () => ({
+      output: [
+        'Goodbye! 👋',
+        '',
+        'Thanks for visiting my terminal portfolio.',
+        'Feel free to come back anytime!',
+      ],
+      type: 'stdout' as const
+    }),
+    aliases: ['quit', 'q']
   },
   {
     name: 'history',
@@ -347,11 +381,23 @@ export function executeCommand(parsed: ParsedCommand, history?: string[]): Comma
   );
 
   if (!cmd) {
+    // Improved command not found message with suggestions
+    const available = getAvailableCommands();
+    const similar = available.filter(c => 
+      c.length > 2 && (c.startsWith(command[0]) || command.includes(c))
+    ).slice(0, 3);
+    
     return {
       output: [
-        `${command}: command not found`,
-        '',
-        'Type "help" to see available commands.'
+        `╭─ Command not found ─────────────────────────────`,
+        `│`,
+        `│  ${command}: command not found`,
+        `│`,
+        `│  Did you mean?`,
+        ...similar.map(s => `│    • ${s}`),
+        `│`,
+        `│  Type "help" to see all available commands.`,
+        `╰──────────────────────────────────────────────`,
       ],
       type: 'stderr'
     };

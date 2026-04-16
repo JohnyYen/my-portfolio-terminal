@@ -28,6 +28,7 @@ export default function Terminal({
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [currentPath] = useState('~');
   const [isReady, setIsReady] = useState(false);
+  const [currentCommand, setCurrentCommand] = useState('Terminal');
   const terminalRef = useRef<HTMLDivElement>(null);
 
   const availableCommands = getAvailableCommands();
@@ -42,10 +43,26 @@ export default function Terminal({
   const handleCommand = useCallback((command: string) => {
     const parsed = parseCommand(command);
     
+    // Check for clear command
     if (parsed.command === 'clear' || parsed.command === 'cls' || parsed.command === 'reset') {
       setOutputLines([]);
       setCommandHistory(prev => [...prev, command]);
       setHistoryIndex(-1);
+      setCurrentCommand('Terminal');
+      return;
+    }
+
+    // Check for exit command
+    if (parsed.command === 'exit' || parsed.command === 'quit' || parsed.command === 'q') {
+      setOutputLines([]);
+      setCommandHistory(prev => [...prev, command]);
+      const result = executeCommand(parsed);
+      if (result.output) {
+        result.output.forEach((line: string) => {
+          addOutput(result.type || 'stdout', line);
+        });
+      }
+      setCurrentCommand('Goodbye');
       return;
     }
 
@@ -53,6 +70,14 @@ export default function Terminal({
     setHistoryIndex(-1);
 
     const result: any = executeCommand(parsed);
+
+    // Update window title with command
+    setCurrentCommand(parsed.command || 'Terminal');
+
+    // Handle clear flag from command result
+    if (result.clearOutput) {
+      setOutputLines([]);
+    }
 
     if (result.output && result.output.length > 0) {
       result.output.forEach((line: string) => {
@@ -87,6 +112,11 @@ export default function Terminal({
     setHistoryIndex(newIndex);
     return commandHistory[newIndex];
   }, [commandHistory, historyIndex]);
+
+  // Update document title
+  useEffect(() => {
+    document.title = `${currentCommand} | Terminal Portfolio`;
+  }, [currentCommand]);
 
   // Boot sequence - minimal, then clear
   useEffect(() => {
