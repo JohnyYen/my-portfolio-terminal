@@ -47,36 +47,8 @@ const DRAGON_ASCII = `
         ██║ ╚████║███████╗██╔╝ ╚██╗╚██████╔╝███████║
         ╚═╝  ╚═══╝╚══════╝╚═╝   ╚═╝ ╚═════╝ ╚══════╝`;
 
-// GitHub User Data
-const GITHUB_USER = 'JohnyYen';
-
-// Projects pinned on GitHub
-const projects = [
-  {
-    name: 'ignix-core',
-    desc: 'Core library for Ignite/X framework. Provides reactive utilities and state management patterns for building scalable TypeScript applications.',
-    tech: 'TypeScript',
-    url: 'https://github.com/JohnyYen/ignix-core'
-  },
-  {
-    name: 'nestJs-template',
-    desc: 'Production-ready NestJS boilerplate with Prisma, Docker, and CI/CD. Includes generic repositories, services, and module structure.',
-    tech: 'TypeScript',
-    url: 'https://github.com/JohnyYen/nestJs-template'
-  },
-  {
-    name: 'fastapi-template',
-    desc: 'FastAPI template with async SQLAlchemy, JWT auth, and Docker. Structured with Clean Architecture for scalable APIs.',
-    tech: 'Python',
-    url: 'https://github.com/JohnyYen/fastapi-template'
-  },
-  {
-    name: 'hello-world-project',
-    desc: 'Starter template for new projects. Quick bootstrap with essential configurations and folder structure.',
-    tech: 'TypeScript',
-    url: 'https://github.com/JohnyYen/hello-world-project'
-  }
-];
+// Import projects from JSON
+import projectsData from '../data/projects.json';
 
 // Command registry
 const commands: Command[] = [
@@ -184,11 +156,11 @@ const commands: Command[] = [
       const filter = args[0]?.toLowerCase();
       
       const filtered = filter 
-        ? projects.filter(p => 
+        ? projectsData.filter(p => 
             p.tech.toLowerCase().includes(filter) ||
             p.name.toLowerCase().includes(filter)
           )
-        : projects;
+        : projectsData;
       
       return {
         output: [
@@ -196,7 +168,7 @@ const commands: Command[] = [
           '',
           ...filtered.map(p => [
             `📦 ${p.name}`,
-            `   ${p.desc}`,
+            `   ${p.description}`,
             `   └─ ${p.tech}`,
             `   🔗 ${p.url}`,
             ''
