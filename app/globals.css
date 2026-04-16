@@ -187,5 +187,32 @@ body {
   
   .terminal-window {
     border-radius: 0;
+    height: 100vh;
+  }
+  
+  /* Increase touch targets for mobile */
+  .traffic-light {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .terminal-header {
+    padding: 16px 20px;
+  }
+  
+  .terminal-input-container {
+    padding: 8px 20px;
+  }
+  
+  /* Make output more readable on small screens */
+  .Output {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  
+  /* Improve input usability */
+  input[aria-label="Terminal input"] {
+    font-size: 16px;
+    min-height: 44px; /* Minimum touch target height */
   }
 }
