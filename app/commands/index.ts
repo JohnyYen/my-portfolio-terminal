@@ -38,6 +38,46 @@ export function parseCommand(input: string): ParsedCommand {
   return { command, args, flags };
 }
 
+// Dragon ASCII Art
+const DRAGON_ASCII = `
+        ███╗   ██╗███████╗██╗  ██╗██╗   ██╗███████╗
+        ████╗  ██║██╔════╝╚██╗██╔╝██║   ██║██╔════╝
+        ██╔██╗ ██║█████╗   ╚███╔╝ ██║   ██║███████╗
+        ██║╚██╗██║██╔══╝   ██╔██╗ ██║   ██║╚════██║
+        ██║ ╚████║███████╗██╔╝ ╚██╗╚██████╔╝███████║
+        ╚═╝  ╚═══╝╚══════╝╚═╝   ╚═╝ ╚═════╝ ╚══════╝`;
+
+// GitHub User Data
+const GITHUB_USER = 'JohnyYen';
+
+// Projects pinned on GitHub
+const projects = [
+  {
+    name: 'ignix-core',
+    desc: 'Core library for Ignite/X framework. Provides reactive utilities and state management patterns for building scalable TypeScript applications.',
+    tech: 'TypeScript',
+    url: 'https://github.com/JohnyYen/ignix-core'
+  },
+  {
+    name: 'nestJs-template',
+    desc: 'Production-ready NestJS boilerplate with Prisma, Docker, and CI/CD. Includes generic repositories, services, and module structure.',
+    tech: 'TypeScript',
+    url: 'https://github.com/JohnyYen/nestJs-template'
+  },
+  {
+    name: 'fastapi-template',
+    desc: 'FastAPI template with async SQLAlchemy, JWT auth, and Docker. Structured with Clean Architecture for scalable APIs.',
+    tech: 'Python',
+    url: 'https://github.com/JohnyYen/fastapi-template'
+  },
+  {
+    name: 'hello-world-project',
+    desc: 'Starter template for new projects. Quick bootstrap with essential configurations and folder structure.',
+    tech: 'TypeScript',
+    url: 'https://github.com/JohnyYen/hello-world-project'
+  }
+];
+
 // Command registry
 const commands: Command[] = [
   {
@@ -49,21 +89,20 @@ const commands: Command[] = [
         '',
         '  help          - Show this help message',
         '  about         - Learn about me',
-        '  bio           - My biography and background',
-        '  skills        - View my technical skills',
-        '  cv            - Download my CV/resume',
-        '  projects      - Browse my projects',
-        '  contact       - How to reach me',
-        '  clear, cls    - Clear the terminal',
-        '  history       - Show command history',
-        '  whoami        - Display current user',
-        '  date          - Show current date/time',
-        '  echo          - Print text',
+        '  projects     - Browse my pinned projects',
+        '  skills       - View my technical skills',
+        '  fetch        - Show system info (fastfetch-style)',
+        '  cv          - Download my CV',
+        '  social      - Social links',
+        '  contact     - How to reach me',
+        '  clear, cls  - Clear the terminal',
+        '  whoami      - Display current user',
+        '  date        - Show current date/time',
+        '  echo        - Print text',
         '',
         'Tips:',
         '  - Use Tab for autocomplete',
         '  - Use ↑/↓ arrows for command history',
-        '  - Type a command and press Enter to execute',
       ],
       type: 'stdout' as const
     })
@@ -73,233 +112,183 @@ const commands: Command[] = [
     description: 'Learn about me',
     handler: () => ({
       output: [
-        '╔══════════════════════════════════════════════════════════════╗',
-        '║                        ABOUT ME                             ║',
-        '╚══════════════════════════════════════════════════════════════╝',
+        '═ ABOUT ──────────────────────────────────────────',
         '',
-        '👋 Hello! I\'m a passionate developer who loves building things.',
+        '👋 Hi! I\'m Johny A. Pedraza Romero',
         '',
-        '🎯 Focus Areas:',
-        '   • Full-stack web development',
-        '   • System architecture',
-        '   • Open source contributions',
-        '   • Creative problem solving',
+        '💼 Backend Engineer in Evolution',
+        '   Currently focused on building robust APIs and exploring',
+        '   software architecture patterns for scalable systems.',
         '',
-        '💡 Philosophy:',
-        '   "Code is poetry, and every bug is an opportunity to learn."',
+        '🎯 Current Focus:',
+        '   • Software Architecture - Designing maintainable',
+        '     systems, understanding DDD, Clean Architecture,',
+        '     and system design principles.',
+        '   • AI Engineering - Learning ML integration, building',
+        '     AI-powered features, and understanding LLM patterns.',
         '',
-        '🌱 Always learning, always growing.',
+        '🔧 What I build:',
+        '   • APIs with FastAPI & NestJS',
+        '   • Developer templates & boilerplates',
+        '   • Clean Architecture patterns',
         '',
-        'Try "bio" for more details or "skills" to see my tech stack!',
+        '📚 Learning Journey:',
+        '   Currently diving deep into system design and exploring',
+        '   how AI/ML can enhance developer productivity.',
+        '   Open to architecture discussions and collaboration!',
+        '',
+        '→ Try "fetch" for a quick summary of me!',
       ],
       type: 'stdout' as const
     })
   },
   {
-    name: 'bio',
-    description: 'My biography and background',
+    name: 'fetch',
+    description: 'Show quick system info (fastfetch-style)',
     handler: () => ({
       output: [
-        '┌─────────────────────────────────────────────────────────────┐',
-        '│                        BIOGRAPHY                           │',
-        '└─────────────────────────────────────────────────────────────┘',
+        DRAGON_ASCII,
         '',
-        '📖 Background:',
-        '   I started my journey in tech when I wrote my first "Hello World"',
-        '   and realized the power of creating something from nothing.',
+        '╭───────────────────╮',
+        '│   user@portfolio  │',
+        '╰───────────────────╯',
         '',
-        '🎓 Education:',
-        '   • Computer Science degree',
-        '   • Continuous learner through online courses and books',
-        '   • Conference speaker and workshop instructor',
+        '  ┌─ Info',
+        '  │  OS:      Terminal Portfolio v1.0',
+        '  │  Host:    JohnyYen',
+        '  │  Kernel:  React + Next.js',
+        '  │  Shell:   Custom Terminal',
+        '  │',
+        '  ├─ Tech Stack',
+        '  │  Backend:  Python (FastAPI), Node.js (NestJS)',
+        '  │  Database: PostgreSQL, Prisma, SQLAlchemy',
+        '  │  DevOps:   Docker, GitHub Actions',
+        '  │',
+        '  ├─ Currently Learning',
+        '  │  • Software Architecture',
+        '  │  • AI/ML Engineering',
+        '  │',
+        '  └─ Location',
+        '     🌎 Available remotely',
         '',
-        '💼 Experience:',
-        '   • 5+ years in software development',
-        '   • Worked with startups and enterprise companies',
-        '   • Led teams and mentored junior developers',
-        '',
-        '🎯 Current Focus:',
-        '   • Building developer tools',
-        '   • Exploring AI/ML applications',
-        '   • Contributing to open source',
-        '',
-        '🌍 Based in the digital realm, available worldwide.',
+        'Type "about" for more details!',
       ],
       type: 'stdout' as const
-    })
+    }),
+    aliases: ['neofetch', 'sysinfo']
+  },
+  {
+    name: 'projects',
+    description: 'Browse my pinned projects',
+    handler: (args: string[]) => {
+      const filter = args[0]?.toLowerCase();
+      
+      const filtered = filter 
+        ? projects.filter(p => 
+            p.tech.toLowerCase().includes(filter) ||
+            p.name.toLowerCase().includes(filter)
+          )
+        : projects;
+      
+      return {
+        output: [
+          '═ PROJECTS ──────────────────────────────────────────',
+          '',
+          ...filtered.map(p => [
+            `📦 ${p.name}`,
+            `   ${p.desc}`,
+            `   └─ ${p.tech}`,
+            `   🔗 ${p.url}`,
+            ''
+          ].flat()).flat(),
+          filter ? `Found ${filtered.length} project(s)` : '',
+          filter && filtered.length === 0 ? `No projects matching "${filter}"` : '',
+        ].filter(Boolean),
+        type: 'stdout' as const
+      };
+    },
+    aliases: ['work', 'repo']
   },
   {
     name: 'skills',
     description: 'View my technical skills',
-    handler: (args: string[]) => {
-      const category = args[0]?.toLowerCase();
-      
-      const skills = {
-        frontend: ['React', 'Next.js', 'TypeScript', 'Tailwind CSS', 'Vue.js'],
-        backend: ['Node.js', 'Python', 'Go', 'PostgreSQL', 'MongoDB'],
-        devops: ['Docker', 'Kubernetes', 'AWS', 'CI/CD', 'Terraform'],
-        tools: ['Git', 'VS Code', 'Figma', 'Linux', 'Vim'],
-        other: ['System Design', 'Agile', 'TDD', 'Clean Code', 'Architecture']
-      };
-
-      if (category && skills[category as keyof typeof skills]) {
-        return {
-          output: [
-            `Skills - ${category.toUpperCase()}:`,
-            '',
-            ...skills[category as keyof typeof skills].map(s => `  ✓ ${s}`),
-          ],
-          type: 'stdout' as const
-        };
-      }
-
-      return {
-        output: [
-          '╔══════════════════════════════════════════════════════════════╗',
-          '║                      TECHNICAL SKILLS                       ║',
-          '╚══════════════════════════════════════════════════════════════╝',
-          '',
-          'Frontend:     React, Next.js, TypeScript, Tailwind CSS, Vue.js',
-          'Backend:      Node.js, Python, Go, PostgreSQL, MongoDB',
-          'DevOps:       Docker, Kubernetes, AWS, CI/CD, Terraform',
-          'Tools:        Git, VS Code, Figma, Linux, Vim',
-          'Other:        System Design, Agile, TDD, Clean Code',
-          '',
-          'Tip: Run "skills frontend" to see only frontend skills!',
-          'Categories: frontend, backend, devops, tools, other',
-        ],
-        type: 'stdout' as const
-      };
-    },
-    aliases: ['tech', 'stack']
+    handler: () => ({
+      output: [
+        '═ SKILLS ──────────────────────────────────────────',
+        '',
+        'Backend:     Python (FastAPI) │ Node.js (NestJS)',
+        'Database:    PostgreSQL │ Prisma │ SQLAlchemy',
+        'DevOps:      Docker │ GitHub Actions',
+        'Tools:       TypeScript │ Git │ Vim',
+        '',
+        '📚 Currently Learning:',
+        '   • Software Architecture (DDD, Clean Architecture)',
+        '   • AI/ML Integration (LLMs, embeddings, RAG)',
+        '',
+        '→ Check "fetch" for a quick overview!',
+        '→ Check "projects" for my work!',
+      ],
+      type: 'stdout' as const
+    })
   },
   {
     name: 'cv',
-    description: 'Download my CV/resume',
+    description: 'Download my CV',
     handler: () => ({
       output: [
-        '📄 CV/Resume:',
+        '═ CV/RESUME ────────────────────────────────────────',
         '',
-        '   📥 Download: https://example.com/cv.pdf',
-        '   🌐 Online: https://example.com/resume',
+        '📥 Download: [CV not configured yet]',
+        '   Set CV_URL in commands/index.ts to enable download',
         '',
-        '   Last updated: March 2026',
+        'Last updated: 2026',
         '',
-        '   Sections:',
-        '   • Professional Summary',
-        '   • Work Experience',
-        '   • Education',
-        '   • Skills & Technologies',
-        '   • Projects & Achievements',
-        '   • Certifications',
+        'Contents:',
+        '  • Professional Summary',
+        '  • Work Experience',
+        '  • Skills & Technologies',
+        '  • Projects',
+        '  • Education',
       ],
       type: 'stdout' as const
     }),
     aliases: ['resume']
   },
   {
-    name: 'projects',
-    description: 'Browse my projects',
-    handler: (args: string[]) => {
-      const filter = args[0]?.toLowerCase();
-      
-      const projects = [
-        {
-          name: 'Terminal Portfolio',
-          desc: 'Interactive terminal-style portfolio (this site!)',
-          tech: ['Next.js', 'TypeScript', 'Tailwind CSS'],
-          link: 'https://github.com/johny/terminal-portfolio'
-        },
-        {
-          name: 'DevDash',
-          desc: 'Developer dashboard for tracking productivity',
-          tech: ['React', 'Node.js', 'PostgreSQL'],
-          link: 'https://github.com/johny/devdash'
-        },
-        {
-          name: 'CLI Tools',
-          desc: 'Collection of useful command-line utilities',
-          tech: ['Go', 'Bash', 'Python'],
-          link: 'https://github.com/johny/cli-tools'
-        },
-        {
-          name: 'AI Code Review',
-          desc: 'AI-powered code review tool',
-          tech: ['Python', 'OpenAI', 'GitHub API'],
-          link: 'https://github.com/johny/ai-code-review'
-        },
-      ];
-
-      if (filter) {
-        const filtered = projects.filter(p => 
-          p.tech.some(t => t.toLowerCase().includes(filter)) ||
-          p.name.toLowerCase().includes(filter)
-        );
-        
-        if (filtered.length === 0) {
-          return {
-            output: [`No projects found matching "${filter}"`],
-            type: 'stderr' as const
-          };
-        }
-
-        return {
-          output: [
-            `Projects matching "${filter}":`,
-            '',
-            ...filtered.map(p => [
-              `📦 ${p.name}`,
-              `   ${p.desc}`,
-              `   Tech: ${p.tech.join(', ')}`,
-              `   🔗 ${p.link}`,
-              ''
-            ].join('\n')),
-          ],
-          type: 'stdout' as const
-        };
-      }
-
-      return {
-        output: [
-          '╔══════════════════════════════════════════════════════════════╗',
-          '║                        MY PROJECTS                          ║',
-          '╚══════════════════════════════════════════════════════════════╝',
-          '',
-          ...projects.flatMap(p => [
-            `📦 ${p.name}`,
-            `   ${p.desc}`,
-            `   Tech: ${p.tech.join(', ')}`,
-            `   🔗 ${p.link}`,
-            ''
-          ]),
-          'Tip: Run "projects next" to filter by technology!',
-        ],
-        type: 'stdout' as const
-      };
-    },
-    aliases: ['work', 'portfolio']
+    name: 'social',
+    description: 'Social links',
+    handler: () => ({
+      output: [
+        '═ SOCIAL ───────────────────────────────────────────',
+        '',
+        '🐙 GitHub:    github.com/JohnyYen',
+        '💼 LinkedIn:  linkedin.com/in/johnyyen',
+        '📧 Email:    (available on request)',
+        '',
+      ],
+      type: 'stdout' as const
+    })
   },
   {
     name: 'contact',
     description: 'How to reach me',
     handler: () => ({
       output: [
-        '╔══════════════════════════════════════════════════════════════╗',
-        '║                      CONTACT ME                             ║',
-        '╚══════════════════════════════════════════════════════════════╝',
+        '═ CONTACT ──────────────────────────────────────────',
         '',
-        '📧 Email:    hello@example.com',
-        '🐦 Twitter:  @yourhandle',
-        '💼 LinkedIn: linkedin.com/in/yourprofile',
-        '🐙 GitHub:   github.com/johndoe',
+        '💬 Let\'s connect!',
         '',
-        'Feel free to reach out for:',
-        '  • Collaboration opportunities',
-        '  • Speaking engagements',
-        '  • Consulting work',
-        '  • Just to say hi!',
+        '📧 Email:    johny.dev@email.com',
+        '💼 LinkedIn: linkedin.com/in/johnyyen',
+        '🐙 GitHub:   github.com/JohnyYen',
         '',
-        'Response time: Usually within 24-48 hours',
+        'Open for:',
+        '  • Backend development opportunities',
+        '  • Software architecture discussions',
+        '  • AI/ML collaboration',
+        '  • Tech mentorship',
+        '',
+        'Response: Usually within 48h',
       ],
       type: 'stdout' as const
     }),
@@ -388,7 +377,7 @@ export function executeCommand(parsed: ParsedCommand, history?: string[]): Comma
   if (!cmd) {
     return {
       output: [
-        `bash: ${command}: command not found`,
+        `${command}: command not found`,
         '',
         'Type "help" to see available commands.'
       ],
@@ -407,3 +396,6 @@ export function getCommandSuggestions(partial: string): string[] {
     cmd.toLowerCase().startsWith(partial.toLowerCase())
   ).slice(0, 5);
 }
+
+// Export dragon ASCII for boot sequence
+export const getDragonAscii = () => DRAGON_ASCII;

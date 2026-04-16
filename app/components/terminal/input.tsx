@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import Prompt from './prompt';
 
 interface InputProps {
   onSubmit: (command: string) => void;
@@ -29,7 +28,6 @@ export default function Input({
   const inputRef = useRef<HTMLInputElement>(null);
   const cursorRef = useRef<HTMLSpanElement>(null);
 
-  // Update suggestions based on input
   useEffect(() => {
     if (inputValue.trim()) {
       const filtered = commands.filter(cmd => 
@@ -44,14 +42,11 @@ export default function Input({
     }
   }, [inputValue, commands]);
 
-  // Focus input on mount
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
-  // Calculate cursor position
   const getCursorPosition = useCallback(() => {
-    // Approximate character width for monospace font
     const charWidth = 8.4;
     return inputValue.length * charWidth;
   }, [inputValue]);
@@ -121,9 +116,9 @@ export default function Input({
     <div className="relative">
       <div className="flex items-center">
         {/* Prompt */}
-        {promptComponent || <Prompt />}
+        {promptComponent}
         
-        {/* Input container */}
+        {/* Input */}
         <div className="flex-1 relative flex items-center">
           <input
             ref={inputRef}
@@ -140,10 +135,10 @@ export default function Input({
             spellCheck="false"
           />
           
-          {/* Custom glowing cursor */}
+          {/* Custom cursor */}
           <span 
             ref={cursorRef}
-            className="absolute top-1/2 -translate-y-1/2 inline-block w-[8px] h-[18px] bg-[var(--starship-green)] cursor-blink cursor-glow pointer-events-none rounded-sm"
+            className="absolute top-1/2 -translate-y-1/2 inline-block w-[8px] h-[18px] bg-[var(--starship-green)] cursor-blink pointer-events-none"
             style={{ 
               left: `${getCursorPosition()}px`,
             }}
@@ -152,27 +147,37 @@ export default function Input({
         </div>
       </div>
 
-      {/* Autocomplete suggestions dropdown */}
+      {/* Suggestions dropdown */}
       {showSuggestions && suggestions.length > 0 && (
-        <div className="autocomplete-dropdown absolute left-0 top-full mt-2 py-1 z-10 min-w-[220px]">
-          <div className="px-2 py-1 text-xs text-[var(--text-muted)] border-b border-[var(--terminal-border)] mb-1">
+        <div 
+          className="absolute left-0 top-full mt-2 z-10 min-w-[200px]"
+          style={{
+            backgroundColor: 'var(--terminal-bg)',
+            border: '1px solid var(--text-muted)',
+            borderRadius: '4px',
+          }}
+        >
+          <div 
+            className="px-3 py-1.5 text-xs"
+            style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--text-muted)' }}
+          >
             Suggestions
           </div>
           {suggestions.map((suggestion, index) => (
             <div
               key={suggestion}
-              className={`autocomplete-item px-3 py-1.5 cursor-pointer flex items-center gap-2 ${
+              className={`px-3 py-1.5 cursor-pointer flex items-center gap-2 ${
                 index === selectedSuggestion 
-                  ? 'selected text-[var(--text-primary)]' 
+                  ? 'text-[var(--text-primary)]' 
                   : 'text-[var(--text-secondary)]'
               }`}
+              style={{
+                backgroundColor: index === selectedSuggestion ? 'rgba(54, 209, 234, 0.15)' : 'transparent',
+              }}
               onClick={() => handleSuggestionClick(suggestion)}
             >
-              <span className="text-[var(--starship-cyan)] text-xs">›</span>
+              <span style={{ color: 'var(--starship-cyan)' }}>›</span>
               <span>{suggestion}</span>
-              {index === selectedSuggestion && (
-                <span className="ml-auto text-xs text-[var(--text-muted)]">Tab ↹</span>
-              )}
             </div>
           ))}
         </div>

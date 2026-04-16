@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, Space_Mono } from "next/font/google";
+import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
 const jetbrainsMono = JetBrains_Mono({
@@ -9,17 +9,9 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-const spaceMono = Space_Mono({
-  variable: "--font-space-mono",
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  display: "swap",
-});
-
 export const metadata: Metadata = {
   title: "Terminal Portfolio | Developer",
-  description: "An interactive terminal-style portfolio built with Next.js. Explore my work through a simulated terminal experience.",
-  keywords: ["developer", "portfolio", "terminal", "interactive"],
+  description: "An interactive terminal-style portfolio built with Next.js",
 };
 
 export default function RootLayout({
@@ -30,19 +22,15 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${jetbrainsMono.variable} ${spaceMono.variable} h-full antialiased`}
+      className={`${jetbrainsMono.variable} h-full antialiased`}
       style={{ colorScheme: 'dark' }}
     >
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <meta name="theme-color" content="#0d1117" />
+        <meta name="theme-color" content="#0a0a0a" />
       </head>
-      <body className="min-h-full flex flex-col bg-[var(--terminal-bg)] text-[var(--text-primary)]">
-        {/* CRT scanline effect */}
-        <div className="crt-overlay" aria-hidden="true" />
-        {/* Noise texture for depth */}
-        <div className="noise-overlay" aria-hidden="true" />
+      <body className="min-h-screen bg-[#0a0a0a] text-[var(--text-primary)]">
         {children}
       </body>
     </html>

@@ -1,293 +1,95 @@
 @import "tailwindcss";
 
 :root {
-  /* Starship-inspired color palette - premium terminal aesthetic */
-  --terminal-bg: #0d1117;
-  --terminal-bg-secondary: #161b22;
-  --terminal-bg-elevated: #1c2128;
-  --terminal-border: #30363d;
-  --terminal-border-light: #21262d;
+  /* Terminal theme */
+  --terminal-bg: #1e1e1e;
+  --terminal-bg-secondary: #252526;
+  --terminal-bg-elevated: #2d2d2d;
+  --terminal-border: #3c3c3c;
   
-  /* Starship segment colors - vibrant and modern */
-  --starship-cyan: #58a6ff;
-  --starship-green: #3fb950;
-  --starship-yellow: #d29922;
-  --starship-orange: #db6d28;
-  --starship-red: #f85149;
-  --starship-magenta: #bc8cff;
-  --starship-purple: #a371f7;
-  --starship-pink: #f778ba;
-  --starship-teal: #39d353;
+  /* Starship-inspired accent colors */
+  --starship-green: #26e08d;
+  --starship-cyan: #36d1ea;
+  --starship-yellow: #f5a524;
+  --starship-red: #ed5a5a;
+  --starship-purple: #b392f0;
   
   /* Text hierarchy */
-  --text-primary: #e6edf3;
-  --text-secondary: #8b949e;
-  --text-muted: #484f58;
-  --text-bright: #ffffff;
+  --text-primary: #e4e4e4;
+  --text-secondary: #888888;
+  --text-muted: #555555;
   
-  /* Glow effects for that terminal phosphor feel */
-  --glow-cyan: rgba(88, 166, 255, 0.25);
-  --glow-green: rgba(63, 185, 80, 0.25);
-  --glow-red: rgba(248, 81, 73, 0.2);
+  /* Typography */
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
   
-  /* Typography - JetBrains Mono for that premium developer feel */
-  --font-terminal: 'JetBrains Mono', 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
-  --font-display: 'Space Mono', monospace;
-  
-  /* Spacing and sizing */
-  --prompt-height: 28px;
-  --line-height: 1.65;
-  --gap-xs: 4px;
-  --gap-sm: 8px;
-  --gap-md: 16px;
-  --gap-lg: 24px;
-  --gap-xl: 32px;
+  /* Spacing */
+  --line-height: 1.6;
 }
 
 @theme inline {
   --color-background: var(--terminal-bg);
   --color-foreground: var(--text-primary);
-  --font-mono: var(--font-terminal);
+  --font-mono: var(--font-mono);
 }
 
-/* Reset and base styles */
-*, *::before, *::after {
+* {
   box-sizing: border-box;
 }
 
 html {
   font-size: 14px;
-  scroll-behavior: smooth;
 }
 
 body {
   background: var(--terminal-bg);
   color: var(--text-primary);
-  font-family: var(--font-terminal);
-  font-feature-settings: "liga" 1, "calt" 1, "ss01" 1, "ss02" 1, "zero" 1;
+  font-family: var(--font-mono);
+  font-feature-settings: "liga" 1, "calt" 1;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   line-height: var(--line-height);
+  margin: 0;
+  padding: 0;
   overflow: hidden;
-  min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
 }
 
-/* Subtle CRT scanline effect for authenticity */
-.crt-overlay {
-  pointer-events: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: repeating-linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 0.015),
-    rgba(0, 0, 0, 0.015) 1px,
-    transparent 1px,
-    transparent 3px
-  );
-  z-index: 1000;
-}
-
-/* Noise texture for depth */
-.noise-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  opacity: 0.025;
-  z-index: 999;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-}
-
-/* Text glow effects - simulating terminal phosphor */
-.text-glow-cyan {
-  text-shadow: 0 0 8px var(--glow-cyan), 0 0 16px rgba(88, 166, 255, 0.1);
-}
-
-.text-glow-green {
-  text-shadow: 0 0 8px var(--glow-green), 0 0 16px rgba(63, 185, 80, 0.1);
-}
-
-.text-glow-red {
-  text-shadow: 0 0 8px var(--glow-red);
-}
-
-/* Cursor animations */
+/* Cursor blink */
 @keyframes cursor-blink {
-  0%, 45% { opacity: 1; }
-  50%, 95% { opacity: 0; }
-  100% { opacity: 1; }
-}
-
-@keyframes cursor-pulse {
-  0%, 100% { 
-    box-shadow: 0 0 4px var(--starship-green), 0 0 8px rgba(63, 185, 80, 0.4);
-  }
-  50% { 
-    box-shadow: 0 0 8px var(--starship-green), 0 0 16px rgba(63, 185, 80, 0.6);
-  }
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
 }
 
 .cursor-blink {
-  animation: cursor-blink 1s ease-in-out infinite;
+  animation: cursor-blink 1s step-end infinite;
 }
 
-.cursor-glow {
-  animation: cursor-pulse 1.5s ease-in-out infinite;
-}
-
-/* Starship prompt segment styles */
-.starship-segment {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--gap-xs);
-  padding: 3px 12px;
-  position: relative;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-}
-
-.starship-segment-icon {
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-/* Arrow separator between segments */
-.starship-arrow {
-  width: 0;
-  height: 0;
-  border-top: 12px solid transparent;
-  border-bottom: 12px solid transparent;
-  border-left: 8px solid;
-  margin-left: -4px;
-}
-
-/* Premium scrollbar */
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 10px;
-  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
   background: var(--terminal-bg-secondary);
-  border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--terminal-border) 0%, var(--terminal-border-light) 100%);
+  background: var(--terminal-border);
   border-radius: 5px;
   border: 2px solid var(--terminal-bg-secondary);
-  transition: background 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, var(--text-secondary) 0%, var(--terminal-border) 100%);
+  background: #555555;
 }
 
-::-webkit-scrollbar-corner {
-  background: var(--terminal-bg-secondary);
-}
-
-/* Selection styling */
+/* Selection */
 ::selection {
-  background: rgba(88, 166, 255, 0.35);
-  color: var(--text-bright);
+  background: rgba(54, 209, 234, 0.3);
+  color: var(--text-primary);
 }
 
-/* Input focus */
-input:focus {
-  outline: none;
-}
-
-/* Terminal window chrome */
-.terminal-chrome {
-  background: linear-gradient(180deg, var(--terminal-bg-elevated) 0%, var(--terminal-bg) 100%);
-  border: 1px solid var(--terminal-border);
-  border-radius: 12px;
-  box-shadow: 
-    0 0 0 1px rgba(255, 255, 255, 0.05),
-    0 4px 24px rgba(0, 0, 0, 0.4),
-    0 12px 48px rgba(0, 0, 0, 0.3);
-}
-
-/* Terminal header */
-.terminal-header {
-  background: linear-gradient(180deg, rgba(30, 30, 30, 0.98) 0%, rgba(22, 27, 34, 0.95) 100%);
-  border-bottom: 1px solid var(--terminal-border);
-}
-
-.terminal-title {
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 500;
-}
-
-/* Traffic light buttons */
-.traffic-light {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  transition: all 0.15s ease;
-}
-
-.traffic-light:hover {
-  transform: scale(1.1);
-}
-
-.traffic-light.close {
-  background: #ff5f57;
-  box-shadow: 0 0 4px rgba(255, 95, 87, 0.4);
-}
-
-.traffic-light.minimize {
-  background: #febc2e;
-  box-shadow: 0 0 4px rgba(254, 188, 46, 0.4);
-}
-
-.traffic-light.maximize {
-  background: #28c840;
-  box-shadow: 0 0 4px rgba(40, 200, 64, 0.4);
-}
-
-/* Input container with subtle accent */
-.terminal-input-container {
-  background: linear-gradient(90deg, rgba(63, 185, 80, 0.04) 0%, transparent 60%);
-  border-left: 3px solid var(--starship-green);
-}
-
-/* Autocomplete dropdown */
-.autocomplete-dropdown {
-  background: var(--terminal-bg-elevated);
-  border: 1px solid var(--terminal-border);
-  border-radius: 8px;
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(255, 255, 255, 0.03),
-    inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(12px);
-}
-
-.autocomplete-item {
-  padding: 8px 12px;
-  transition: all 0.15s ease;
-  border-left: 2px solid transparent;
-}
-
-.autocomplete-item:hover {
-  background: rgba(88, 166, 255, 0.08);
-  border-left-color: var(--starship-cyan);
-}
-
-.autocomplete-item.selected {
-  background: rgba(88, 166, 255, 0.15);
-  border-left-color: var(--starship-cyan);
-}
-
-/* Output text classes */
+/* Output styles */
 .output-stdout {
   color: var(--text-primary);
 }
@@ -308,224 +110,82 @@ input:focus {
   color: var(--starship-yellow);
 }
 
-.output-muted {
+.output-stdin {
   color: var(--text-secondary);
 }
 
-/* ASCII art styling */
-.ascii-art {
-  color: var(--starship-cyan);
-  font-family: var(--font-terminal);
-  white-space: pre;
-  line-height: 1.15;
-  font-size: 0.85em;
+/* Terminal window chrome */
+.terminal-window {
+  background: var(--terminal-bg);
+  border: 1px solid var(--terminal-border);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-.ascii-art-alt {
-  color: var(--starship-magenta);
+/* Terminal header */
+.terminal-header {
+  background: linear-gradient(180deg, #2d2d2d 0%, #252526 100%);
+  border-bottom: 1px solid var(--terminal-border);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  -webkit-app-region: drag;
 }
 
-/* Command output styling */
-.command-prompt {
-  color: var(--starship-green);
-  font-weight: 600;
+/* Traffic lights */
+.traffic-light {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  transition: opacity 0.15s ease;
 }
 
-.command-input {
-  color: var(--text-primary);
+.traffic-light.close {
+  background: #ff5f57;
 }
 
-.command-not-found {
-  color: var(--starship-red);
+.traffic-light.minimize {
+  background: #febc2e;
 }
 
-.command-not-found span {
-  color: var(--starship-orange);
-  font-weight: 600;
+.traffic-light.maximize {
+  background: #28c840;
 }
 
-/* Git branch styling */
-.git-branch-icon {
-  color: var(--starship-orange);
-}
-
-.git-branch-name {
-  color: var(--starship-orange);
-  font-weight: 500;
-}
-
-/* Path styling */
-.path-home {
-  color: var(--starship-cyan);
-  font-weight: 600;
-}
-
-.path-separator {
+/* Terminal title */
+.terminal-title {
   color: var(--text-secondary);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.path-folder {
-  color: var(--starship-blue);
-  font-weight: 500;
+/* Input container */
+.terminal-input-container {
+  padding: 4px 16px;
 }
 
-/* Boot sequence styling */
-.boot-ok {
-  color: var(--starship-green);
-}
-
-.boot-starting {
-  color: var(--starship-cyan);
-}
-
-.boot-failed {
-  color: var(--starship-red);
-}
-
-.boot-warning {
-  color: var(--starship-yellow);
-}
-
-.boot-info {
-  color: var(--text-secondary);
-}
-
-/* Section headers in commands */
-.section-header {
-  color: var(--starship-magenta);
-  font-weight: 600;
-}
-
-.section-divider {
-  color: var(--terminal-border);
-}
-
-/* Keyframe animations */
+/* Animations */
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-@keyframes slide-up {
-  from { 
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to { 
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes type-character {
-  from { width: 0; }
-  to { width: 100%; }
-}
-
-@keyframes glow-pulse {
-  0%, 100% { 
-    opacity: 0.5;
-    filter: blur(4px);
-  }
-  50% { 
-    opacity: 0.8;
-    filter: blur(6px);
-  }
-}
-
-@keyframes boot-text-appear {
-  from { 
-    opacity: 0;
-    transform: translateX(-4px);
-  }
-  to { 
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* Animation utility classes */
 .animate-fade-in {
-  animation: fade-in 0.4s ease-out forwards;
+  animation: fade-in 0.3s ease-out forwards;
 }
 
-.animate-slide-up {
-  animation: slide-up 0.35s ease-out forwards;
-}
-
-.animate-glow-pulse {
-  animation: glow-pulse 2s ease-in-out infinite;
-}
-
-.animate-boot-text {
-  animation: boot-text-appear 0.2s ease-out forwards;
-}
-
-/* Staggered animation delays */
-.delay-100 { animation-delay: 100ms; }
-.delay-200 { animation-delay: 200ms; }
-.delay-300 { animation-delay: 300ms; }
-.delay-400 { animation-delay: 400ms; }
-.delay-500 { animation-delay: 500ms; }
-
-/* Gradient text for special elements */
-.gradient-text {
-  background: linear-gradient(135deg, var(--starship-cyan) 0%, var(--starship-magenta) 50%, var(--starship-orange) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Link styling */
-.terminal-link {
-  color: var(--starship-cyan);
-  text-decoration: none;
-  border-bottom: 1px dashed var(--starship-cyan);
-  transition: all 0.2s ease;
-}
-
-.terminal-link:hover {
-  color: var(--starship-blue);
-  border-bottom-style: solid;
-  text-shadow: 0 0 8px var(--glow-cyan);
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
+/* Responsive */
+@media (max-width: 640px) {
   html {
     font-size: 13px;
   }
   
-  .starship-segment {
-    padding: 2px 8px;
-  }
-  
-  .terminal-chrome {
+  .terminal-window {
     border-radius: 0;
-  }
-}
-
-@media (max-width: 480px) {
-  html {
-    font-size: 12px;
-  }
-  
-  .ascii-art {
-    font-size: 0.65em;
-    overflow-x: auto;
-  }
-}
-
-/* Accessibility - reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-  
-  .cursor-blink {
-    animation: none;
-    opacity: 1;
   }
 }

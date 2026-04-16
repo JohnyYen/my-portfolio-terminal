@@ -6,117 +6,81 @@ interface PromptProps {
   username?: string;
   hostname?: string;
   currentPath?: string;
-  gitBranch?: string;
-  gitStatus?: 'clean' | 'dirty' | 'staged';
   className?: string;
 }
+
+// Dragon icon SVG - stylized Cygame-style dragon head
+const DragonIcon = ({ className }: { className?: string }) => (
+  <svg 
+    className={className}
+    viewBox="0 0 24 24" 
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    {/* Dragon head - minimal geometric */}
+    <path 
+      d="M12 2L2 8v8c0 5.5 4.5 10 10 10s10-4.5 10-10V8L12 2z" 
+      fill="currentColor" 
+      opacity="0.15"
+    />
+    <path 
+      d="M12 2L2 8v8c0 5.5 4.5 10 10 10s10-4.5 10-10V8L12 2z" 
+      stroke="currentColor" 
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    {/* Eye */}
+    <circle cx="9" cy="9" r="1.5" fill="currentColor" />
+    <circle cx="15" cy="9" r="1.5" fill="currentColor" />
+    {/* Snout */}
+    <path 
+      d="M10 14h4M12 12v4" 
+      stroke="currentColor" 
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+    {/* Horns */}
+    <path 
+      d="M5 6l-2 3M19 6l2 3" 
+      stroke="currentColor" 
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+  </svg>
+);
 
 export default function Prompt({ 
   username = 'visitor', 
   hostname = 'portfolio', 
   currentPath = '~',
-  gitBranch,
-  gitStatus = 'clean',
   className = ''
 }: PromptProps) {
-  // Get icon for git status
-  const getGitStatusIcon = () => {
-    switch (gitStatus) {
-      case 'dirty': return '!';
-      case 'staged': return '+';
-      default: return '✓';
-    }
-  };
-
-  const getGitStatusColor = () => {
-    switch (gitStatus) {
-      case 'dirty': return 'text-[var(--starship-red)]';
-      case 'staged': return 'text-[var(--starship-yellow)]';
-      default: return 'text-[var(--starship-green)]';
-    }
-  };
-
   return (
-    <div className={`flex items-center ${className}`} role="presentation">
-      {/* Username segment */}
-      <span 
-        className="starship-segment text-[var(--text-bright)] font-semibold"
-        style={{ backgroundColor: 'rgba(163, 113, 247, 0.15)' }}
-      >
-        <span className="text-[var(--starship-purple)]">❯</span>
-        <span>{username}</span>
-      </span>
+    <div 
+      className={`flex items-center gap-2 leading-relaxed ${className}`}
+      role="presentation"
+    >
+      {/* Dragon icon */}
+      <DragonIcon className="w-4 h-4 text-[var(--starship-purple)]" />
       
-      {/* Arrow separator */}
-      <span 
-        className="starship-arrow" 
-        style={{ borderLeftColor: 'rgba(88, 166, 255, 0.15)' }}
-        aria-hidden="true"
-      />
+      {/* Username */}
+      <span className="text-[var(--starship-purple)]">{username}</span>
       
-      {/* Hostname segment */}
-      <span 
-        className="starship-segment text-[var(--text-primary)]"
-        style={{ backgroundColor: 'rgba(88, 166, 255, 0.12)' }}
-      >
-        <span className="text-[var(--starship-cyan)]">@</span>
-        <span className="text-[var(--starship-cyan)] font-medium">{hostname}</span>
-      </span>
+      {/* Separator */}
+      <span className="text-[var(--text-muted)]">@</span>
       
-      {/* Arrow separator */}
-      <span 
-        className="starship-arrow" 
-        style={{ borderLeftColor: 'rgba(63, 185, 80, 0.12)' }}
-        aria-hidden="true"
-      />
+      {/* Hostname */}
+      <span className="text-[var(--starship-cyan)]">{hostname}</span>
       
-      {/* Directory segment */}
-      <span 
-        className="starship-segment text-[var(--text-primary)]"
-        style={{ backgroundColor: 'rgba(63, 185, 80, 0.1)' }}
-      >
-        <span className="text-[var(--starship-green)] mr-1">📁</span>
-        <span className="text-[var(--starship-cyan)] font-semibold">{currentPath}</span>
-      </span>
+      {/* Separator */}
+      <span className="text-[var(--text-muted)]">:</span>
       
-      {/* Git branch segment (if available) */}
-      {gitBranch && (
-        <>
-          <span 
-            className="starship-arrow" 
-            style={{ borderLeftColor: 'rgba(219, 109, 40, 0.12)' }}
-            aria-hidden="true"
-          />
-          <span 
-            className="starship-segment text-[var(--text-primary)]"
-            style={{ backgroundColor: 'rgba(219, 109, 40, 0.1)' }}
-          >
-            <span className="text-[var(--starship-orange)] mr-1">⎇</span>
-            <span className="text-[var(--starship-orange)] font-medium">{gitBranch}</span>
-            <span className={`ml-1 text-xs ${getGitStatusColor()}`}>
-              {getGitStatusIcon()}
-            </span>
-          </span>
-        </>
-      )}
+      {/* Path */}
+      <span className="text-[var(--starship-yellow)]">{currentPath}</span>
       
-      {/* Arrow to prompt symbol */}
-      <span 
-        className="starship-arrow" 
-        style={{ borderLeftColor: 'rgba(188, 140, 255, 0.12)' }}
-        aria-hidden="true"
-      />
-      
-      {/* Prompt symbol segment */}
-      <span 
-        className="starship-segment text-glow-green"
-        style={{ backgroundColor: 'rgba(63, 185, 80, 0.08)' }}
-      >
-        <span className="text-[var(--starship-green)] font-bold text-lg">❯</span>
-      </span>
-      
-      {/* Space after prompt */}
-      <span className="w-2" aria-hidden="true" />
+      {/* Prompt symbol */}
+      <span className="text-[var(--starship-green)] ml-1">$</span>
     </div>
   );
 }
