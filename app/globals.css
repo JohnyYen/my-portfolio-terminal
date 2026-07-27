@@ -179,6 +179,74 @@ body {
   animation: fade-in 0.3s ease-out forwards;
 }
 
+/* Welcome banner */
+.welcome-banner {
+  margin-bottom: 12px;
+}
+
+.welcome-banner-ascii {
+  color: var(--starship-cyan);
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 0;
+  margin-bottom: 8px;
+}
+
+.welcome-banner-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.welcome-banner-pill {
+  background: none;
+  border: 1px solid var(--starship-green);
+  color: var(--starship-green);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 2px 10px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.welcome-banner-pill:hover {
+  background-color: var(--starship-green);
+  color: var(--terminal-bg);
+}
+
+.welcome-banner-pill:focus-visible {
+  outline: 2px solid var(--starship-cyan);
+  outline-offset: 2px;
+}
+
+/* Toast notification */
+.toast-notification {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  z-index: 100;
+  animation: toast-in 0.2s ease-out forwards;
+}
+
+.toast-border {
+  color: var(--starship-green);
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   html {

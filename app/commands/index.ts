@@ -1,9 +1,26 @@
+export interface Project {
+  name: string;
+  description: string;
+  language: string | null;
+  stars: number;
+  forks: number;
+  updatedAt: string;
+  url: string;
+  topics: string[];
+}
+
+export interface CommandContext {
+  projects?: Project[];
+  loading?: boolean;
+  refresh?: () => void;
+}
+
 export interface Command {
   name: string;
   description: string;
   usage?: string;
   aliases?: string[];
-  handler: (args: string[], history?: string[]) => CommandResult;
+  handler: (args: string[], history?: string[], context?: CommandContext) => CommandResult;
 }
 
 export interface CommandResult {
@@ -166,31 +183,161 @@ const commands: Command[] = [
   {
     name: 'projects',
     description: 'Browse my pinned projects',
-    handler: (args: string[]) => {
-      const filter = args[0]?.toLowerCase();
-      
-      const filtered = filter 
-        ? projectsData.filter(p => 
-            p.tech.toLowerCase().includes(filter) ||
-            p.name.toLowerCase().includes(filter)
+    usage: 'projects [--all] [--refresh] [language]',
+    handler: (args: string[], _history?: string[], context?: CommandContext) => {
+      const cleanArgs = args.filter(a => !a.startsWith('--'));
+      const flags = args.filter(a => a.startsWith('--'));
+      const filter = cleanArgs[0]?.toLowerCase();
+
+      // Handle --refresh flag
+      if (flags.includes('refresh')) {
+        if (context?.refresh) {
+          context.refresh();
+        }
+        return {
+          output: ['⏳ Refreshing projects from GitHub...'],
+          type: 'stdout' as const,
+        };
+      }
+
+      // Handle loading state
+      if (context?.loading) {
+        return {
+          output: ['⏳ Fetching projects from GitHub...'],
+          type: 'stdout' as const,
+        };
+      }
+
+      // Helper: relative time display
+      const relativeTime = (dateString: string): string => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) return 'Updated today';
+        if (diffDays === 1) return 'Updated yesterday';
+        if (diffDays < 30) return `Updated ${diffDays}d ago`;
+        const diffMonths = Math.floor(diffDays / 30);
+        if (diffMonths === 1) return 'Updated 1 month ago';
+        if (diffMonths < 12) return `Updated ${diffMonths}mo ago`;
+        const diffYears = Math.floor(diffMonths / 12);
+        return `Updated ${diffYears}y ago`;
+      };
+
+      // Use live data if available and not empty
+      if (context?.projects && context.projects.length > 0) {
+        const projects = context.projects;
+
+        let filtered = projects;
+        if (filter) {
+          filtered = projects.filter(
+            (p) =>
+              (p.language &&
+                p.language.toLowerCase().includes(filter)) ||
+              p.name.toLowerCase().includes(filter)
+          );
+        }
+
+        const showAll = flags.includes('all');
+        const display = showAll ? filtered : filtered.slice(0, 8);
+
+        return {
+          output: [
+            '═ PROJECTS ──────────────────────────────────────────',
+            '',
+            ...display
+              .map((p) =>
+                [
+                  `📦 ${p.name}`,
+                  `   ${p.description || 'No description'}`,
+                  `   └─ ${p.language || 'N/A'} ${'⭐ ' + p.stars} ${'🍴 ' + p.forks}`,
+                  `   🔗 ${p.url}`,
+                  `   📅 ${relativeTime(p.updatedAt)}`,
+                  '',
+                ].flat()
+              )
+              .flat(),
+            filter && filtered.length === 0
+              ? `No projects matching "${filter}"`
+              : '',
+            filter
+              ? `Found ${filtered.length} project(s)`
+              : '',
+            !showAll && filtered.length > 8
+              ? `Showing 8 of ${filtered.length} projects (use --all to see all)`
+              : '',
+          ].filter(Boolean),
+          type: 'stdout' as const,
+        };
+      }
+
+      // Live data loaded but empty — fall back to static data
+      if (context?.projects && context.projects.length === 0 && !context.loading) {
+        // Return static data with enhanced format
+        const staticFiltered = filter
+          ? projectsData.filter(
+              (p: { tech: string; name: string }) =>
+                p.tech.toLowerCase().includes(filter) ||
+                p.name.toLowerCase().includes(filter)
+            )
+          : projectsData;
+
+        return {
+          output: [
+            '═ PROJECTS ──────────────────────────────────────────',
+            '',
+            ...staticFiltered
+              .map((p: { name: string; description: string; tech: string; url: string }) =>
+                [
+                  `📦 ${p.name}`,
+                  `   ${p.description}`,
+                  `   └─ ${p.tech}`,
+                  `   🔗 ${p.url}`,
+                  '',
+                ].flat()
+              )
+              .flat(),
+            filter && staticFiltered.length === 0
+              ? `No projects matching "${filter}"`
+              : '',
+          ].filter(Boolean),
+          type: 'stdout' as const,
+        };
+      }
+
+      // No context at all — use static data (original behavior as fallback)
+      const staticFiltered = filter
+        ? projectsData.filter(
+            (p: { tech: string; name: string }) =>
+              p.tech.toLowerCase().includes(filter) ||
+              p.name.toLowerCase().includes(filter)
           )
         : projectsData;
-      
+
       return {
         output: [
           '═ PROJECTS ──────────────────────────────────────────',
           '',
-          ...filtered.map(p => [
-            `📦 ${p.name}`,
-            `   ${p.description}`,
-            `   └─ ${p.tech}`,
-            `   🔗 ${p.url}`,
-            ''
-          ].flat()).flat(),
-          filter ? `Found ${filtered.length} project(s)` : '',
-          filter && filtered.length === 0 ? `No projects matching "${filter}"` : '',
+          ...staticFiltered
+            .map((p: { name: string; description: string; tech: string; url: string }) =>
+              [
+                `📦 ${p.name}`,
+                `   ${p.description}`,
+                `   └─ ${p.tech}`,
+                `   🔗 ${p.url}`,
+                '',
+              ].flat()
+            )
+            .flat(),
+          filter && staticFiltered.length === 0
+            ? `No projects matching "${filter}"`
+            : '',
+          filter
+            ? `Found ${staticFiltered.length} project(s)`
+            : '',
         ].filter(Boolean),
-        type: 'stdout' as const
+        type: 'stdout' as const,
       };
     },
     aliases: ['work', 'repo']
@@ -368,7 +515,7 @@ export function getAvailableCommands(): string[] {
 }
 
 // Execute a parsed command
-export function executeCommand(parsed: ParsedCommand, history?: string[]): CommandResult {
+export function executeCommand(parsed: ParsedCommand, history?: string[], context?: CommandContext): CommandResult {
   const { command, args } = parsed;
 
   if (!command) {
@@ -404,7 +551,7 @@ export function executeCommand(parsed: ParsedCommand, history?: string[]): Comma
   }
 
   // Execute command handler
-  return cmd.handler(args, history);
+  return cmd.handler(args, history, context);
 }
 
 // Get command suggestions for autocomplete

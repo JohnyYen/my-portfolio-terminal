@@ -13,25 +13,28 @@ interface OutputProps {
   typingSpeed?: number;
 }
 
-export default function Output({ lines, typingSpeed = 4 }: OutputProps) {
+export default function Output({ lines, typingSpeed = 2 }: OutputProps) {
   const [displayedLines, setDisplayedLines] = useState<OutputLine[]>([]);
   const [currentTyping, setCurrentTyping] = useState<{ lineIndex: number; charIndex: number } | null>(null);
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const outputRef = useRef<HTMLDivElement>(null);
   const lastProcessedIndex = useRef<number>(-1);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Copy to clipboard function
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text).then(() => {
-      // Show copied feedback
-      setCopiedIndex(displayedLines.findIndex(line => line.content === text));
-      
-      // Hide copied feedback after 2 seconds
-      setTimeout(() => {
-        setCopiedIndex(null);
-      }, 2000);
-    }).catch(err => {
-      console.error('Failed to copy text: ', err);
+      // Clear any existing timer
+      if (toastTimerRef.current) {
+        clearTimeout(toastTimerRef.current);
+      }
+      setToastMessage('Copied!');
+      toastTimerRef.current = setTimeout(() => {
+        setToastMessage(null);
+        toastTimerRef.current = null;
+      }, 1500);
+    }).catch(() => {
+      // Silently fail — no toast on copy failure
     });
   };
 
@@ -198,11 +201,6 @@ export default function Output({ lines, typingSpeed = 4 }: OutputProps) {
               title="Click to copy"
             >
               <div dangerouslySetInnerHTML={{ __html: linkified }} />
-              {copiedIndex === index && (
-                <span className="absolute right-0 top-0 -mt-2 mr-2 text-[var(--starship-green)] text-xs">
-                  Copied!
-                </span>
-              )}
             </div>
           );
         }
@@ -222,14 +220,20 @@ export default function Output({ lines, typingSpeed = 4 }: OutputProps) {
             ) : (
               displayContent || '\u00A0'
             )}
-            {copiedIndex === index && (
-              <span className="absolute right-0 top-0 -mt-2 mr-2 text-[var(--starship-green)] text-xs">
-                Copied!
-              </span>
-            )}
           </div>
         );
       })}
+
+      {/* Toast notification */}
+      {toastMessage && (
+        <div className="toast-notification">
+          <pre className="toast-border">
+╭──────────╮
+│ Copied!  │
+╰──────────╯
+          </pre>
+        </div>
+      )}
     </div>
   );
 }

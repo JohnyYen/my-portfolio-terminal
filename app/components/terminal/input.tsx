@@ -8,6 +8,7 @@ interface InputProps {
   commandHistory: string[];
   onHistoryUp: () => string | null;
   onHistoryDown: () => string | null;
+  onFirstInput?: () => void;
   disabled?: boolean;
   promptComponent?: React.ReactNode;
 }
@@ -18,6 +19,7 @@ export default function Input({
   commandHistory,
   onHistoryUp,
   onHistoryDown,
+  onFirstInput,
   disabled = false,
   promptComponent
 }: InputProps) {
@@ -27,6 +29,7 @@ export default function Input({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const cursorRef = useRef<HTMLSpanElement>(null);
+  const firstInputFired = useRef(false);
 
   useEffect(() => {
     if (inputValue.trim()) {
@@ -138,7 +141,13 @@ export default function Input({
             ref={inputRef}
             type="text"
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            onChange={(e) => {
+              if (!firstInputFired.current && e.target.value) {
+                firstInputFired.current = true;
+                onFirstInput?.();
+              }
+              setInputValue(e.target.value);
+            }}
             onKeyDown={handleKeyDown}
             disabled={disabled}
             className="w-full bg-transparent text-[var(--text-primary)] caret-transparent focus:outline-none py-1 font-mono"

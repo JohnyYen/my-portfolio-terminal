@@ -5,6 +5,8 @@ import Output from './output';
 import Input from './input';
 import Prompt from './prompt';
 import { parseCommand, executeCommand, getAvailableCommands } from '../../commands/index';
+import WelcomeBanner from '../welcome-banner';
+import { useGithubProjects } from '../../hooks/use-github-projects';
 
 interface OutputLine {
   type: 'stdout' | 'stderr' | 'stdin' | 'info' | 'success' | 'warning';
@@ -30,7 +32,10 @@ export default function Terminal({
   const [isReady, setIsReady] = useState(false);
   const [currentCommand, setCurrentCommand] = useState('Terminal');
   const [isExecuting, setIsExecuting] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(true);
   const terminalRef = useRef<HTMLDivElement>(null);
+
+  const { projects, loading, refresh } = useGithubProjects();
 
   // Load history from localStorage on mount
   useEffect(() => {
@@ -62,61 +67,65 @@ export default function Terminal({
     ]);
   }, []);
 
-    const handleCommand = useCallback(async (command: string) => {
-  // Show processing indicator
-  setIsExecuting(true);
-  
-  try {
-    const parsed = parseCommand(command);
-    
-    // Check for clear command
-    if (parsed.command === 'clear' || parsed.command === 'cls' || parsed.command === 'reset') {
-      setOutputLines([]);
+  const handleCommand = useCallback(async (command: string) => {
+    // Dismiss welcome banner on any command
+    setShowWelcome(false);
+
+    // Show processing indicator
+    setIsExecuting(true);
+
+    try {
+      const parsed = parseCommand(command);
+
+      // Check for clear command
+      if (parsed.command === 'clear' || parsed.command === 'cls' || parsed.command === 'reset') {
+        setOutputLines([]);
+        setCommandHistory(prev => [...prev, command]);
+        setHistoryIndex(-1);
+        setCurrentCommand('Terminal');
+        return;
+      }
+
+      // Check for exit command
+      if (parsed.command === 'exit' || parsed.command === 'quit' || parsed.command === 'q') {
+        setOutputLines([]);
+        setCommandHistory(prev => [...prev, command]);
+        const result = executeCommand(parsed, undefined, { projects, loading, refresh });
+        if (result.output) {
+          result.output.forEach((line: string) => {
+            addOutput(result.type || 'stdout', line);
+          });
+        }
+        setCurrentCommand('Goodbye');
+        return;
+      }
+
       setCommandHistory(prev => [...prev, command]);
       setHistoryIndex(-1);
-      setCurrentCommand('Terminal');
-      return;
-    }
-    
-    // Check for exit command
-    if (parsed.command === 'exit' || parsed.command === 'quit' || parsed.command === 'q') {
-      setOutputLines([]);
-      setCommandHistory(prev => [...prev, command]);
-      const result = executeCommand(parsed);
-      if (result.output) {
+
+      const context = { projects, loading, refresh };
+      const result = executeCommand(parsed, undefined, context);
+
+      // Update window title with command
+      setCurrentCommand(parsed.command || 'Terminal');
+
+      // Handle clear flag from command result
+      if (result.clearOutput) {
+        setOutputLines([]);
+      }
+
+      if (result.output && result.output.length > 0) {
         result.output.forEach((line: string) => {
           addOutput(result.type || 'stdout', line);
         });
       }
-      setCurrentCommand('Goodbye');
-      return;
+
+      addOutput('stdout', '');
+    } finally {
+      // Hide processing indicator
+      setIsExecuting(false);
     }
-    
-    setCommandHistory(prev => [...prev, command]);
-    setHistoryIndex(-1);
-    
-    const result: any = executeCommand(parsed);
-    
-    // Update window title with command
-    setCurrentCommand(parsed.command || 'Terminal');
-    
-    // Handle clear flag from command result
-    if (result.clearOutput) {
-      setOutputLines([]);
-    }
-    
-    if (result.output && result.output.length > 0) {
-      result.output.forEach((line: string) => {
-        addOutput(result.type || 'stdout', line);
-      });
-    }
-    
-    addOutput('stdout', '');
-  } finally {
-    // Hide processing indicator
-    setIsExecuting(false);
-  }
-}, [addOutput]);
+  }, [addOutput, projects, loading, refresh]);
 
   const getHistoryUp = useCallback(() => {
     if (commandHistory.length === 0) return null;
@@ -148,34 +157,13 @@ export default function Terminal({
     document.title = `${currentCommand} | Terminal Portfolio`;
   }, [currentCommand]);
 
-  // Boot sequence - minimal, then clear
+  // Initialize terminal ready state
   useEffect(() => {
     if (!isReady) {
-      const bootMessages = [
-        { type: 'stdout' as const, text: 'Initializing terminal...', delay: 50 },
-        { type: 'stdout' as const, text: 'Loading starship config...', delay: 100 },
-        { type: 'success' as const, text: 'Ready', delay: 80 },
-        { type: 'stdout' as const, text: '', delay: 30 },
-        { type: 'info' as const, text: 'Type "help" for available commands', delay: 80 },
-        { type: 'stdout' as const, text: '', delay: 30 },
-      ];
-
-      let currentDelay = 0;
-      bootMessages.forEach((msg) => {
-        currentDelay += msg.delay;
-        setTimeout(() => {
-          addOutput(msg.type, msg.text);
-        }, currentDelay);
-      });
-
-      // Clear boot messages after completion, show only prompt
-      setTimeout(() => {
-        setOutputLines([]);
-        setIsReady(true);
-        onReady?.();
-      }, currentDelay + 150);
+      setIsReady(true);
+      onReady?.();
     }
-  }, [isReady, addOutput, onReady]);
+  }, [isReady, onReady]);
 
   // Auto-scroll
   useEffect(() => {
@@ -238,6 +226,16 @@ export default function Terminal({
           className="flex-1 overflow-y-auto p-0"
         >
           <div className="p-4">
+            {/* Welcome banner */}
+            {showWelcome && isReady && (
+              <div className="mb-4">
+                <WelcomeBanner
+                  onCommand={handleCommand}
+                  onDismiss={() => setShowWelcome(false)}
+                />
+              </div>
+            )}
+
             <Output lines={outputLines} typingSpeed={2} />
             
             {/* Input area */}
@@ -245,6 +243,7 @@ export default function Terminal({
               <div className="terminal-input-container mt-1">
                 <Input
                   onSubmit={handleCommand}
+                  onFirstInput={() => setShowWelcome(false)}
                   commands={availableCommands}
                   commandHistory={commandHistory}
                   onHistoryUp={getHistoryUp}
