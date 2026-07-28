@@ -38,8 +38,30 @@ export default function Terminal({
   const [isExecuting, setIsExecuting] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const [mode, setMode] = useState<'terminal' | 'tui'>('terminal');
+  const [renderedMode, setRenderedMode] = useState<'terminal' | 'tui'>('terminal');
+  const [transitionPhase, setTransitionPhase] = useState<'idle' | 'fading'>('idle');
   const [activeSection, setActiveSection] = useState('about');
   const terminalRef = useRef<HTMLDivElement>(null);
+  const transitionTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  // Animate mode transitions
+  useEffect(() => {
+    if (mode === renderedMode) return;
+
+    // Fade out current content
+    setTransitionPhase('fading');
+
+    transitionTimer.current = setTimeout(() => {
+      // Swap content (starts at opacity-0 since still 'fading')
+      setRenderedMode(mode);
+      // Small tick to let the new content render at opacity-0, then fade in
+      requestAnimationFrame(() => {
+        setTransitionPhase('idle');
+      });
+    }, 150);
+
+    return () => clearTimeout(transitionTimer.current);
+  }, [mode, renderedMode]);
 
   const { projects, loading, refresh } = useGithubProjects();
 
@@ -185,6 +207,7 @@ export default function Terminal({
   }, [outputLines]);
 
   const handleTerminalClick = () => {
+    if (renderedMode === 'tui') return;
     const input = document.querySelector('input[aria-label="Terminal input"]') as HTMLInputElement;
     input?.focus();
   };
@@ -241,8 +264,16 @@ export default function Terminal({
           ref={terminalRef}
           className="flex-1 overflow-y-auto p-0"
         >
-          <div className={`p-4 ${mode === 'tui' ? 'h-full' : ''}`}>
-            {mode === 'tui' ? (
+          <div
+            className={`p-4 transition-all duration-200 ease-in-out will-change-transform ${
+              renderedMode === 'tui' ? 'h-full' : ''
+            } ${
+              transitionPhase === 'fading'
+                ? 'opacity-0 translate-y-2'
+                : 'opacity-100 translate-y-0'
+            }`}
+          >
+            {renderedMode === 'tui' ? (
               <TuiMenu
                 projects={projects}
                 loading={loading}
