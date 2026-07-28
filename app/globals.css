@@ -200,6 +200,29 @@ body {
   animation: fade-in-up 0.15s ease-out forwards;
 }
 
+/* TUI card — terminal-style depth */
+.tui-card {
+  background: var(--terminal-bg-secondary);
+  border: 1px solid var(--terminal-border);
+  border-radius: 0.375rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tui-card:hover {
+  border-color: var(--terminal-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* TUI card with accent left border */
+.tui-card-accent {
+  border-left: 2px solid var(--starship-cyan);
+}
+
 /* Welcome banner */
 .welcome-banner {
   margin-bottom: 12px;

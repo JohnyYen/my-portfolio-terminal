@@ -13,11 +13,8 @@ export default function CvSection() {
       </div>
 
       <div
-        className="p-4 rounded"
-        style={{
-          backgroundColor: 'var(--terminal-bg-secondary)',
-          border: '1px solid var(--terminal-border)',
-        }}
+        className="tui-card p-4"
+        style={{ borderLeft: '2px solid var(--starship-yellow)' }}
       >
         <div className="flex items-center gap-3 mb-3">
           <span style={{ fontSize: '24px' }}>📄</span>
@@ -42,11 +39,8 @@ export default function CvSection() {
       </div>
 
       <div
-        className="p-4 rounded"
-        style={{
-          backgroundColor: 'var(--terminal-bg-secondary)',
-          border: '1px solid var(--terminal-border)',
-        }}
+        className="tui-card p-4"
+        style={{ borderLeft: '2px solid var(--starship-yellow)' }}
       >
         <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--starship-yellow)' }}>
           Contents

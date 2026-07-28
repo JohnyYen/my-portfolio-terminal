@@ -81,11 +81,8 @@ export default function ProjectsSection({ projects, loading, searchQuery = '' }:
         {filtered.map((project, i) => (
           <div
             key={i}
-            className="p-4 rounded"
-            style={{
-              backgroundColor: 'var(--terminal-bg-secondary)',
-              border: '1px solid var(--terminal-border)',
-            }}
+            className="tui-card tui-card-accent p-4"
+            style={{ borderLeftColor: 'var(--starship-cyan)' }}
           >
             <div className="flex items-center gap-2 mb-2">
               <span style={{ fontSize: '16px' }}>📦</span>

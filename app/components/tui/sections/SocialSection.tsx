@@ -35,10 +35,9 @@ export default function SocialSection({ data }: SocialSectionProps) {
             href={link.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 p-3 rounded hover:underline transition-colors"
+            className="tui-card flex items-center gap-3 p-3 hover:underline transition-colors"
             style={{
-              backgroundColor: 'var(--terminal-bg-secondary)',
-              border: '1px solid var(--terminal-border)',
+              borderLeft: '2px solid var(--starship-purple)',
               color: 'var(--starship-cyan)',
             }}
           >

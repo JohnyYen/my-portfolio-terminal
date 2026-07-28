@@ -24,11 +24,8 @@ export default function ContactSection({ data }: ContactSectionProps) {
 
       <div className="space-y-3">
         <div
-          className="p-3 rounded flex items-center gap-3"
-          style={{
-            backgroundColor: 'var(--terminal-bg-secondary)',
-            border: '1px solid var(--terminal-border)',
-          }}
+          className="tui-card p-3 flex items-center gap-3"
+          style={{ borderLeft: '2px solid var(--starship-cyan)' }}
         >
           <span style={{ fontSize: '18px' }}>📧</span>
           <div>
@@ -44,11 +41,8 @@ export default function ContactSection({ data }: ContactSectionProps) {
         </div>
 
         <div
-          className="p-3 rounded flex items-center gap-3"
-          style={{
-            backgroundColor: 'var(--terminal-bg-secondary)',
-            border: '1px solid var(--terminal-border)',
-          }}
+          className="tui-card p-3 flex items-center gap-3"
+          style={{ borderLeft: '2px solid var(--starship-cyan)' }}
         >
           <span style={{ fontSize: '18px' }}>💼</span>
           <div>
@@ -66,11 +60,8 @@ export default function ContactSection({ data }: ContactSectionProps) {
         </div>
 
         <div
-          className="p-3 rounded flex items-center gap-3"
-          style={{
-            backgroundColor: 'var(--terminal-bg-secondary)',
-            border: '1px solid var(--terminal-border)',
-          }}
+          className="tui-card p-3 flex items-center gap-3"
+          style={{ borderLeft: '2px solid var(--starship-cyan)' }}
         >
           <span style={{ fontSize: '18px' }}>🐙</span>
           <div>
@@ -89,11 +80,8 @@ export default function ContactSection({ data }: ContactSectionProps) {
       </div>
 
       <div
-        className="p-4 rounded"
-        style={{
-          backgroundColor: 'var(--terminal-bg-secondary)',
-          border: '1px solid var(--terminal-border)',
-        }}
+        className="tui-card p-4"
+        style={{ borderLeft: '2px solid var(--starship-green)' }}
       >
         <p style={{ color: 'var(--starship-green)' }}>💬 Open for:</p>
         <ul className="mt-2 space-y-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
