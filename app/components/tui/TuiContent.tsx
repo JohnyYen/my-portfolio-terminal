@@ -51,18 +51,21 @@ export default function TuiContent({
         />
       )}
 
-      {activeSection === 'about' && <AboutSection data={aboutData} />}
-      {activeSection === 'projects' && (
-        <ProjectsSection
-          projects={projects}
-          loading={loading}
-          searchQuery={searchActive ? searchQuery : ''}
-        />
-      )}
-      {activeSection === 'skills' && <SkillsSection data={skillsData} />}
-      {activeSection === 'social' && <SocialSection data={socialData} />}
-      {activeSection === 'contact' && <ContactSection data={socialData} />}
-      {activeSection === 'cv' && <CvSection />}
+      {/* Section content with fade transition on change */}
+      <div key={activeSection} className="tui-section-fade-in">
+        {activeSection === 'about' && <AboutSection data={aboutData} />}
+        {activeSection === 'projects' && (
+          <ProjectsSection
+            projects={projects}
+            loading={loading}
+            searchQuery={searchActive ? searchQuery : ''}
+          />
+        )}
+        {activeSection === 'skills' && <SkillsSection data={skillsData} />}
+        {activeSection === 'social' && <SocialSection data={socialData} />}
+        {activeSection === 'contact' && <ContactSection data={socialData} />}
+        {activeSection === 'cv' && <CvSection />}
+      </div>
     </div>
   );
 }

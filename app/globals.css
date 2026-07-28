@@ -186,8 +186,18 @@ body {
   to { opacity: 1; }
 }
 
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .animate-fade-in {
   animation: fade-in 0.3s ease-out forwards;
+}
+
+/* TUI section transition */
+.tui-section-fade-in {
+  animation: fade-in-up 0.15s ease-out forwards;
 }
 
 /* Welcome banner */
