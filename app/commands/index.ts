@@ -90,6 +90,7 @@ const commands: Command[] = [
         '  cv          - Download my CV',
         '  social      - Social links',
         '  contact     - How to reach me',
+        '  shortcuts, keys, bindings — Show keyboard shortcuts',
         '  clear, cls  - Clear the terminal',
         '  exit        - Exit the terminal',
         '  whoami      - Display current user',
@@ -113,6 +114,34 @@ const commands: Command[] = [
       output: ['Switching to TUI mode...\n'],
       type: 'info' as const,
       setMode: 'tui' as const
+    })
+  },
+  {
+    name: 'shortcuts',
+    description: 'Show keyboard shortcuts',
+    aliases: ['keys', 'bindings'],
+    handler: () => ({
+      output: [
+        '═ KEYBOARD SHORTCUTS ────────────────────────────',
+        '',
+        'Terminal:',
+        '  ↑/↓         - Command history',
+        '  Tab         - Autocomplete command',
+        '  Ctrl+C      - Cancel current input',
+        '  Ctrl+L      - Clear terminal',
+        '',
+        'TUI Menu (type "menu" to open):',
+        '  ↑/↓         - Navigate sections',
+        '  Enter       - Select section',
+        '  Esc         - Return to terminal',
+        '  /           - Search projects',
+        '  ?           - Show this help',
+        '',
+        'Welcome Banner:',
+        '  Click pill  - Execute command',
+        '  Type        - Dismiss banner',
+      ],
+      type: 'stdout' as const
     })
   },
   {

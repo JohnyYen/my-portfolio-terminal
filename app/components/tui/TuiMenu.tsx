@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import TuiSidebar from './TuiSidebar';
 import TuiContent from './TuiContent';
 import TuiStatusBar from './TuiStatusBar';
+import TuiShortcuts from './TuiShortcuts';
 import type { Project } from '../../hooks/use-github-projects';
 
 interface TuiMenuProps {
@@ -31,6 +32,9 @@ export default function TuiMenu({
   activeSection, onSectionChange, onExit,
 }: TuiMenuProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const [searchActive, setSearchActive] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     containerRef.current?.focus();
@@ -38,6 +42,9 @@ export default function TuiMenu({
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     const currentIndex = SECTIONS.findIndex(s => s.id === activeSection);
+
+    // If shortcuts overlay is open, only Esc works (handled by TuiShortcuts)
+    if (showShortcuts) return;
 
     switch (e.key) {
       case 'ArrowDown':
@@ -50,10 +57,28 @@ export default function TuiMenu({
         break;
       case 'Escape':
         e.preventDefault();
-        onExit();
+        if (searchActive) {
+          setSearchActive(false);
+          setSearchQuery('');
+        } else {
+          onExit();
+        }
+        break;
+      case '?':
+        if (!searchActive) {
+          e.preventDefault();
+          setShowShortcuts(true);
+        }
+        break;
+      case '/':
+        if (!searchActive) {
+          e.preventDefault();
+          setSearchActive(true);
+          setSearchQuery('');
+        }
         break;
     }
-  }, [activeSection, onSectionChange, onExit]);
+  }, [activeSection, onSectionChange, onExit, showShortcuts, searchActive]);
 
   const activeLabel = SECTIONS.find(s => s.id === activeSection)?.label || '';
   const currentIndex = SECTIONS.findIndex(s => s.id === activeSection) + 1;
@@ -63,7 +88,7 @@ export default function TuiMenu({
       ref={containerRef}
       tabIndex={0}
       onKeyDown={handleKeyDown}
-      className="flex flex-row h-full outline-none"
+      className="flex flex-row h-full outline-none relative"
       style={{ minHeight: '300px' }}
     >
       <TuiSidebar
@@ -79,13 +104,23 @@ export default function TuiMenu({
           aboutData={aboutData}
           skillsData={skillsData}
           socialData={socialData}
+          searchActive={searchActive}
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          onSearchClose={() => { setSearchActive(false); setSearchQuery(''); }}
         />
         <TuiStatusBar
           activeSection={activeLabel}
           currentIndex={currentIndex}
           totalSections={SECTIONS.length}
+          hasSearch={searchActive}
         />
       </div>
+
+      {/* Shortcuts overlay */}
+      {showShortcuts && (
+        <TuiShortcuts onClose={() => setShowShortcuts(false)} />
+      )}
     </div>
   );
 }

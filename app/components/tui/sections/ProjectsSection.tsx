@@ -6,6 +6,7 @@ import type { Project } from '../../../hooks/use-github-projects';
 interface ProjectsSectionProps {
   projects: Project[];
   loading: boolean;
+  searchQuery?: string;
 }
 
 function timeAgo(dateStr: string): string {
@@ -38,12 +39,28 @@ function langColor(lang: string | null): string {
   return LANG_COLORS[lang] || 'var(--text-muted)';
 }
 
-export default function ProjectsSection({ projects, loading }: ProjectsSectionProps) {
+export default function ProjectsSection({ projects, loading, searchQuery = '' }: ProjectsSectionProps) {
+  const filtered = searchQuery
+    ? projects.filter(p => {
+        const q = searchQuery.toLowerCase();
+        return (
+          p.name.toLowerCase().includes(q) ||
+          (p.language || '').toLowerCase().includes(q) ||
+          (p.description || '').toLowerCase().includes(q)
+        );
+      })
+    : projects;
+
   return (
     <div className="font-mono space-y-6">
       <div>
         <h2 className="text-lg font-bold" style={{ color: 'var(--starship-cyan)' }}>
           Projects
+          {searchQuery && (
+            <span className="ml-2 text-sm font-normal" style={{ color: 'var(--text-muted)' }}>
+              · filtered ({filtered.length})
+            </span>
+          )}
         </h2>
         <div className="h-px my-3" style={{ backgroundColor: 'var(--terminal-border)' }} />
       </div>
@@ -52,14 +69,16 @@ export default function ProjectsSection({ projects, loading }: ProjectsSectionPr
         <p style={{ color: 'var(--starship-cyan)' }}>⏳ Fetching projects from GitHub...</p>
       )}
 
-      {!loading && projects.length === 0 && (
+      {!loading && filtered.length === 0 && (
         <p style={{ color: 'var(--text-muted)' }}>
-          No projects found. Tag repos with &quot;showcase&quot; on GitHub to see them here.
+          {searchQuery
+            ? `No projects matching "${searchQuery}"`
+            : 'No projects found. Tag repos with "showcase" on GitHub to see them here.'}
         </p>
       )}
 
       <div className="grid gap-4">
-        {projects.map((project, i) => (
+        {filtered.map((project, i) => (
           <div
             key={i}
             className="p-4 rounded"
