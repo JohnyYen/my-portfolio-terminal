@@ -7,6 +7,10 @@ import Prompt from './prompt';
 import { parseCommand, executeCommand, getAvailableCommands } from '../../commands/index';
 import WelcomeBanner from '../welcome-banner';
 import { useGithubProjects } from '../../hooks/use-github-projects';
+import aboutData from '../../data/about.json';
+import skillsData from '../../data/skills.json';
+import socialData from '../../data/social.json';
+import TuiMenu from '../tui/TuiMenu';
 
 interface OutputLine {
   type: 'stdout' | 'stderr' | 'stdin' | 'info' | 'success' | 'warning';
@@ -33,6 +37,8 @@ export default function Terminal({
   const [currentCommand, setCurrentCommand] = useState('Terminal');
   const [isExecuting, setIsExecuting] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
+  const [mode, setMode] = useState<'terminal' | 'tui'>('terminal');
+  const [activeSection, setActiveSection] = useState('about');
   const terminalRef = useRef<HTMLDivElement>(null);
 
   const { projects, loading, refresh } = useGithubProjects();
@@ -107,7 +113,13 @@ export default function Terminal({
       const result = executeCommand(parsed, undefined, context);
 
       // Update window title with command
-      setCurrentCommand(parsed.command || 'Terminal');
+      setCurrentCommand(parsed.command === 'menu' ? 'Menu' : (parsed.command || 'Terminal'));
+
+      // Handle mode switch from command result
+      if (result.setMode) {
+        setMode(result.setMode);
+        return;
+      }
 
       // Handle clear flag from command result
       if (result.clearOutput) {
@@ -125,7 +137,7 @@ export default function Terminal({
       // Hide processing indicator
       setIsExecuting(false);
     }
-  }, [addOutput, projects, loading, refresh]);
+  }, [addOutput, projects, loading, refresh, mode]);
 
   const getHistoryUp = useCallback(() => {
     if (commandHistory.length === 0) return null;
@@ -208,7 +220,11 @@ export default function Terminal({
           {/* Terminal title */}
           <div className="terminal-title">
             <span style={{ color: 'var(--starship-cyan)' }}>⌘</span>
-            <span>{username}@{hostname}: {currentPath}</span>
+            {mode === 'tui' ? (
+              <span>Menu</span>
+            ) : (
+              <span>{username}@{hostname}: {currentPath}</span>
+            )}
             {isExecuting && (
               <span className="ml-2 animate-spin text-[var(--starship-green)] text-xs">
                 ●
@@ -225,38 +241,53 @@ export default function Terminal({
           ref={terminalRef}
           className="flex-1 overflow-y-auto p-0"
         >
-          <div className="p-4">
-            {/* Welcome banner */}
-            {showWelcome && isReady && (
-              <div className="mb-4">
-                <WelcomeBanner
-                  onCommand={handleCommand}
-                  onDismiss={() => setShowWelcome(false)}
-                />
-              </div>
-            )}
-
-            <Output lines={outputLines} typingSpeed={2} />
-            
-            {/* Input area */}
-            {isReady && (
-              <div className="terminal-input-container mt-1">
-                <Input
-                  onSubmit={handleCommand}
-                  onFirstInput={() => setShowWelcome(false)}
-                  commands={availableCommands}
-                  commandHistory={commandHistory}
-                  onHistoryUp={getHistoryUp}
-                  onHistoryDown={getHistoryDown}
-                  promptComponent={
-                    <Prompt 
-                      username={username}
-                      hostname={hostname}
-                      currentPath={currentPath}
+          <div className={`p-4 ${mode === 'tui' ? 'h-full' : ''}`}>
+            {mode === 'tui' ? (
+              <TuiMenu
+                projects={projects}
+                loading={loading}
+                aboutData={aboutData}
+                skillsData={skillsData}
+                socialData={socialData}
+                activeSection={activeSection}
+                onSectionChange={setActiveSection}
+                onExit={() => setMode('terminal')}
+              />
+            ) : (
+              <>
+                {/* Welcome banner */}
+                {showWelcome && isReady && (
+                  <div className="mb-4">
+                    <WelcomeBanner
+                      onCommand={handleCommand}
+                      onDismiss={() => setShowWelcome(false)}
                     />
-                  }
-                />
-              </div>
+                  </div>
+                )}
+
+                <Output lines={outputLines} typingSpeed={2} />
+                
+                {/* Input area */}
+                {isReady && (
+                  <div className="terminal-input-container mt-1">
+                    <Input
+                      onSubmit={handleCommand}
+                      onFirstInput={() => setShowWelcome(false)}
+                      commands={availableCommands}
+                      commandHistory={commandHistory}
+                      onHistoryUp={getHistoryUp}
+                      onHistoryDown={getHistoryDown}
+                      promptComponent={
+                        <Prompt 
+                          username={username}
+                          hostname={hostname}
+                          currentPath={currentPath}
+                        />
+                      }
+                    />
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

@@ -27,6 +27,7 @@ export interface CommandResult {
   output: string[];
   type: 'stdout' | 'stderr' | 'info';
   clearOutput?: boolean;
+  setMode?: 'terminal' | 'tui';
 }
 
 export interface ParsedCommand {
@@ -81,6 +82,7 @@ const commands: Command[] = [
         'Available commands:',
         '',
         '  help          - Show this help message',
+        '  menu, gui, nav, browse — Open TUI menu',
         '  about         - Learn about me',
         '  projects     - Browse my pinned projects',
         '  skills       - View my technical skills',
@@ -101,6 +103,16 @@ const commands: Command[] = [
         '  ↑/↓         - Command history',
       ],
       type: 'stdout' as const
+    })
+  },
+  {
+    name: 'menu',
+    description: 'Open TUI menu',
+    aliases: ['gui', 'nav', 'browse'],
+    handler: () => ({
+      output: ['Switching to TUI mode...\n'],
+      type: 'info' as const,
+      setMode: 'tui' as const
     })
   },
   {
