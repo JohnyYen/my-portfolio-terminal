@@ -195,6 +195,30 @@ body {
   animation: fade-in 0.3s ease-out forwards;
 }
 
+/* Terminal spinner — pulsing braille dots */
+@keyframes terminal-dots {
+  0%, 20% { opacity: 0.2; }
+  50% { opacity: 1; }
+  80%, 100% { opacity: 0.2; }
+}
+
+.terminal-dot {
+  animation: terminal-dots 1.4s ease-in-out infinite;
+}
+.terminal-dot:nth-child(2) { animation-delay: 0.2s; }
+.terminal-dot:nth-child(3) { animation-delay: 0.4s; }
+
+/* Error/404 fade-in */
+@keyframes glitch-in {
+  0% { opacity: 0; transform: translateX(-2px); }
+  60% { opacity: 1; transform: translateX(1px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+.terminal-glitch-in {
+  animation: glitch-in 0.3s ease-out forwards;
+}
+
 /* TUI section transition */
 .tui-section-fade-in {
   animation: fade-in-up 0.15s ease-out forwards;
