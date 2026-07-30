@@ -64,7 +64,7 @@ export default function TuiContent({
         {activeSection === 'skills' && <SkillsSection data={skillsData} />}
         {activeSection === 'social' && <SocialSection data={socialData} />}
         {activeSection === 'contact' && <ContactSection data={socialData} />}
-        {activeSection === 'cv' && <CvSection />}
+        {activeSection === 'cv' && <CvSection cvUrl={socialData.cvUrl} />}
       </div>
     </div>
   );

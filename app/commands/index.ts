@@ -417,10 +417,9 @@ const commands: Command[] = [
       output: [
         '═ CV/RESUME ────────────────────────────────────────',
         '',
-        '📥 Download: [CV not configured yet]',
-        '   Set CV_URL in commands/index.ts to enable download',
+        `📥 Download: ${socialData.cvUrl || '[CV not configured]'}`,
         '',
-        'Last updated: 2026',
+        'Last updated: 2026-07-30',
         '',
         'Contents:',
         '  • Professional Summary',

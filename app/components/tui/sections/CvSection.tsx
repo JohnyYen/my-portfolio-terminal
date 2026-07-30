@@ -1,8 +1,35 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 
-export default function CvSection() {
+interface CvSectionProps {
+  cvUrl?: string;
+}
+
+export default function CvSection({ cvUrl }: CvSectionProps) {
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownload = async () => {
+    if (!cvUrl) return;
+    setDownloading(true);
+    try {
+      const response = await fetch(cvUrl);
+      if (!response.ok) throw new Error('Download failed');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Johny_A._Pedraza_Romero_CV.pdf';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch {
+      window.open(cvUrl, '_blank');
+    }
+    setDownloading(false);
+  };
+
   return (
     <div className="font-mono space-y-6">
       <div>
@@ -19,23 +46,38 @@ export default function CvSection() {
         <div className="flex items-center gap-3 mb-3">
           <span style={{ fontSize: '24px' }}>📄</span>
           <div>
-            <p style={{ color: 'var(--text-primary)' }}>Download CV</p>
+            <p style={{ color: 'var(--text-primary)' }}>Johny A. Pedraza Romero CV</p>
             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-              Last updated: 2026
+              PDF — 69 KB · Last release: 2026-07-30
             </p>
           </div>
         </div>
 
-        <div
-          className="px-4 py-3 rounded text-sm text-center"
+        <button
+          onClick={handleDownload}
+          disabled={downloading}
+          className="w-full px-4 py-3 rounded text-sm text-center cursor-pointer font-mono"
           style={{
             backgroundColor: 'var(--terminal-bg-elevated)',
-            color: 'var(--starship-yellow)',
-            border: '1px dashed var(--terminal-border)',
+            color: downloading ? 'var(--text-muted)' : 'var(--starship-yellow)',
+            border: '1px solid var(--terminal-border)',
+            transition: 'border-color 0.15s ease',
+          }}
+          onMouseEnter={(e) => {
+            if (!downloading) e.currentTarget.style.borderColor = 'var(--starship-yellow)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = 'var(--terminal-border)';
           }}
         >
-          CV not configured yet
-        </div>
+          {downloading ? '⏳ Downloading...' : '⬇ Download CV'}
+        </button>
+
+        {!cvUrl && (
+          <p className="mt-3 text-xs text-center" style={{ color: 'var(--text-muted)' }}>
+            CV URL not configured
+          </p>
+        )}
       </div>
 
       <div
