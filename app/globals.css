@@ -250,6 +250,9 @@ body {
 /* Welcome banner */
 .welcome-banner {
   margin-bottom: 12px;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .welcome-banner-ascii {
@@ -258,12 +261,16 @@ body {
   line-height: 1.4;
   margin: 0;
   margin-bottom: 8px;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .welcome-banner-pills {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .welcome-banner-pill {

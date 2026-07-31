@@ -11,7 +11,7 @@ const suggestions = [
   { label: 'help', cmd: 'help' },
   { label: 'about', cmd: 'about' },
   { label: 'projects', cmd: 'projects' },
-  { label: 'menu', cmd: 'help' },
+  { label: 'menu', cmd: 'menu' },
 ];
 
 export default function WelcomeBanner({
@@ -26,14 +26,14 @@ export default function WelcomeBanner({
   return (
     <div className="welcome-banner animate-fade-in">
       <pre className="welcome-banner-ascii">
-╭──────────────────────────────────────────────╮
+{`╭──────────────────────────────────────────────╮
 │                                              │
 │   Welcome to Terminal Portfolio              │
 │                                              │
 │   Type a command or click a pill to get      │
 │   started:                                   │
 │                                              │
-╰──────────────────────────────────────────────╯
+╰──────────────────────────────────────────────╯`}
       </pre>
       <div className="welcome-banner-pills">
         {suggestions.map((s) => (
