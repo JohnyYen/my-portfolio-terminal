@@ -96,6 +96,18 @@ export default function TuiMenu({
     }
   }, [filtered.length]);
 
+  // Clamp resultIndex when the search-result set shrinks on query change
+  // (mirrors the selectedIndex clamp above). Resets to -1 when empty so no
+  // stale highlight lingers; Math.max(0, …) guarantees a valid first-selection
+  // on the empty→non-empty transition. (REQ-C2/C4 reviewer fix.)
+  useEffect(() => {
+    if (flatResults.length === 0) {
+      setResultIndex(-1);
+    } else {
+      setResultIndex(prev => Math.min(Math.max(0, prev), flatResults.length - 1));
+    }
+  }, [flatResults.length]);
+
   const restoreFocus = useCallback(() => {
     containerRef.current?.focus();
   }, []);
@@ -295,6 +307,7 @@ export default function TuiMenu({
         case 'ArrowLeft':
           e.preventDefault();
           setPane('sections');
+          setSelectedIndex(-1); // drop stale content-pane card highlight (reviewer fix)
           break;
         case 'ArrowRight':
           e.preventDefault();
@@ -308,6 +321,7 @@ export default function TuiMenu({
           e.preventDefault();
           if (e.shiftKey) {
             setPane('sections');
+            setSelectedIndex(-1); // mirror ← — drop stale card highlight (reviewer fix)
           } else if (CONTENT_PANE_SECTIONS.includes(activeSection)) {
             setPane('content');
             autoSelectFirst();
