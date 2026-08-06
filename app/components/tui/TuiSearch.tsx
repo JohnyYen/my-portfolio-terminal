@@ -1,20 +1,21 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useEffect } from 'react';
 
 interface TuiSearchProps {
+  /** Ref owned by TuiMenu — the input is focused/returned from here (REQ-X3). */
+  inputRef: React.RefObject<HTMLInputElement | null>;
   query: string;
   onQueryChange: (query: string) => void;
   onClose: () => void;
+  /** Total matches across the global corpus (REQ-C1). */
   resultCount: number;
 }
 
-export default function TuiSearch({ query, onQueryChange, onClose, resultCount }: TuiSearchProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-
+export default function TuiSearch({ inputRef, query, onQueryChange, onClose, resultCount }: TuiSearchProps) {
   useEffect(() => {
     inputRef.current?.focus();
-  }, []);
+  }, [inputRef]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
@@ -37,9 +38,9 @@ export default function TuiSearch({ query, onQueryChange, onClose, resultCount }
         ref={inputRef}
         type="text"
         value={query}
-        onChange={(e) => onQueryChange(e.target.value)}
+        onChange={e => onQueryChange(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Search projects by name, language, or description..."
+        placeholder="Search all sections…"
         className="flex-1 bg-transparent text-sm font-mono outline-none"
         style={{
           color: 'var(--text-primary)',

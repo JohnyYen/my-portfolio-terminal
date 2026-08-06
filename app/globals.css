@@ -322,7 +322,85 @@ body {
   }
 }
 
-/* Responsive */
+/* TUI card selected state (content pane highlight + search result highlight) */
+.tui-card-selected,
+.tui-card.tui-card-selected {
+  border-color: var(--starship-cyan);
+  background: rgba(54, 209, 234, 0.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 0 0 1px var(--starship-cyan);
+}
+
+/* Focus visibility — visible ring only for keyboard users (REQ-A1/X2) */
+.tui-focus:focus-visible {
+  outline: 2px solid var(--starship-cyan);
+  outline-offset: 2px;
+}
+.tui-focus:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Transient "Switching to TUI mode..." banner (REQ-E3/D14) */
+.tui-banner {
+  color: var(--starship-cyan);
+  border: 1px solid var(--terminal-border);
+  background: var(--terminal-bg-secondary);
+  padding: 4px 8px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  animation: tui-banner-fade 900ms ease-out forwards;
+}
+@keyframes tui-banner-fade {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/* Mobile tab bar — mono chips, 44px+ touch targets (REQ-D1/D2) */
+.tui-tab {
+  flex: 0 0 auto;
+  min-height: 44px;
+  min-width: 64px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--terminal-border);
+  border-radius: 0;
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+.tui-tab.active,
+.tui-tab[aria-selected='true'] {
+  color: var(--starship-cyan);
+  background: rgba(54, 209, 234, 0.08);
+  border-color: var(--starship-cyan);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+.tui-tab:focus-visible {
+  outline: 2px solid var(--starship-cyan);
+  outline-offset: 2px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .tui-banner {
+    animation: none;
+  }
+  .tui-section-fade-in {
+    animation: none;
+  }
+  .terminal-dot {
+    animation: none;
+  }
+}
+
 @media (max-width: 640px) {
   html {
     font-size: 13px;

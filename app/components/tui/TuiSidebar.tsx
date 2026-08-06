@@ -1,12 +1,7 @@
 'use client';
 
 import React from 'react';
-
-interface Section {
-  id: string;
-  label: string;
-  icon: string;
-}
+import type { Section } from './keymap';
 
 interface TuiSidebarProps {
   sections: Section[];
@@ -14,9 +9,17 @@ interface TuiSidebarProps {
   onSectionChange: (id: string) => void;
 }
 
+/**
+ * Desktop section list (Area A). Uses the shared `Section` type from `keymap.ts`
+ * so ids/labels/icons never drift, and marks the active section with
+ * `aria-current` (REQ-A2/A6, REQ-X2). The nav element carries
+ * `data-tui-sidebar` so the container Enter guard treats sidebar buttons as
+ * MANAGED items — Enter is always intercepted there (hard gate 3).
+ */
 export default function TuiSidebar({ sections, activeSection, onSectionChange }: TuiSidebarProps) {
   return (
     <nav
+      data-tui-sidebar
       className="flex-shrink-0 border-r overflow-y-auto hidden sm:flex flex-col"
       style={{
         width: '192px',
@@ -33,18 +36,19 @@ export default function TuiSidebar({ sections, activeSection, onSectionChange }:
             <button
               key={section.id}
               onClick={() => onSectionChange(section.id)}
+              aria-current={isActive ? 'page' : undefined}
               className="w-full text-left px-4 py-3 flex items-center gap-1 transition-all duration-150 cursor-pointer group"
               style={{
                 color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
                 backgroundColor: isActive ? 'rgba(54, 209, 234, 0.08)' : 'transparent',
               }}
-              onMouseEnter={(e) => {
+              onMouseEnter={e => {
                 if (!isActive) {
                   e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)';
                   e.currentTarget.style.color = 'var(--text-primary)';
                 }
               }}
-              onMouseLeave={(e) => {
+              onMouseLeave={e => {
                 if (!isActive) {
                   e.currentTarget.style.backgroundColor = 'transparent';
                   e.currentTarget.style.color = 'var(--text-secondary)';

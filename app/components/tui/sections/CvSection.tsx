@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { downloadCv } from '../../../lib/download';
 
 interface CvSectionProps {
   cvUrl?: string;
@@ -13,21 +14,11 @@ export default function CvSection({ cvUrl }: CvSectionProps) {
     if (!cvUrl) return;
     setDownloading(true);
     try {
-      const response = await fetch(cvUrl);
-      if (!response.ok) throw new Error('Download failed');
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'Johny_A._Pedraza_Romero_CV.pdf';
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch {
-      window.open(cvUrl, '_blank');
+      // Shared util so the TUI Enter action (REQ-A6) triggers the same download.
+      await downloadCv(cvUrl);
+    } finally {
+      setDownloading(false);
     }
-    setDownloading(false);
   };
 
   return (

@@ -1,12 +1,15 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import type { Project } from '../../../hooks/use-github-projects';
+import { filterProjects } from '../../../lib/projects-filter';
 
 interface ProjectsSectionProps {
   projects: Project[];
   loading: boolean;
   searchQuery?: string;
+  /** Content-pane selection index, -1 = none (driven by TuiMenu). */
+  selectedIndex: number;
 }
 
 function timeAgo(dateStr: string): string {
@@ -39,17 +42,27 @@ function langColor(lang: string | null): string {
   return LANG_COLORS[lang] || 'var(--text-muted)';
 }
 
-export default function ProjectsSection({ projects, loading, searchQuery = '' }: ProjectsSectionProps) {
-  const filtered = searchQuery
-    ? projects.filter(p => {
-        const q = searchQuery.toLowerCase();
-        return (
-          p.name.toLowerCase().includes(q) ||
-          (p.language || '').toLowerCase().includes(q) ||
-          (p.description || '').toLowerCase().includes(q)
-        );
-      })
-    : projects;
+/**
+ * Projects listing (Area B). Renders the shared tokenized filter (REQ-B3),
+ * exposes the content-pane list semantics (role=list/listitem, aria-current),
+ * keeps anchor activation out of the container Enter path via tabIndex={-1}
+ * (hard gate 3) and scrolls the selected card into view (REQ-B1).
+ */
+export default function ProjectsSection({
+  projects,
+  loading,
+  searchQuery = '',
+  selectedIndex,
+}: ProjectsSectionProps) {
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([])
+  const filtered = filterProjects(projects, searchQuery);
+
+  // Scroll the highlighted card into view when selection changes (REQ-B1).
+  useEffect(() => {
+    if (selectedIndex >= 0 && selectedIndex < filtered.length) {
+      itemRefs.current[selectedIndex]?.scrollIntoView({ block: 'nearest' });
+    }
+  }, [selectedIndex, filtered]);
 
   return (
     <div className="font-mono space-y-6">
@@ -77,47 +90,61 @@ export default function ProjectsSection({ projects, loading, searchQuery = '' }:
         </p>
       )}
 
-      <div className="grid gap-4">
-        {filtered.map((project, i) => (
-          <div
-            key={i}
-            className="tui-card tui-card-accent p-4"
-            style={{ borderLeftColor: 'var(--starship-cyan)' }}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <span style={{ fontSize: '16px' }}>📦</span>
-              <a
-                href={project.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold hover:underline"
-                style={{ color: 'var(--starship-cyan)' }}
+      {!loading && filtered.length > 0 && (
+        <div
+          role="list"
+          data-tui-projects-list
+          className="grid gap-4"
+          aria-label="Projects"
+        >
+          {filtered.map((project, i) => {
+            const isSelected = i === selectedIndex;
+            return (
+              <div
+                key={project.url}
+                ref={el => {
+                  itemRefs.current[i] = el;
+                }}
+                role="listitem"
+                aria-current={isSelected ? 'true' : undefined}
+                className={`tui-card tui-card-accent p-4 ${isSelected ? 'tui-card-selected' : ''}`}
+                style={{ borderLeftColor: 'var(--starship-cyan)' }}
               >
-                {project.name}
-              </a>
-            </div>
-            <p className="text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
-              {project.description || 'No description'}
-            </p>
-            <div className="flex items-center gap-4 text-xs">
-              {project.language && (
-                <span className="flex items-center gap-1" style={{ color: 'var(--text-primary)' }}>
-                  <span
-                    className="inline-block w-2.5 h-2.5 rounded-full"
-                    style={{ backgroundColor: langColor(project.language) }}
-                  />
-                  {project.language}
-                </span>
-              )}
-              <span style={{ color: 'var(--starship-yellow)' }}>⭐ {project.stars}</span>
-              <span style={{ color: 'var(--text-secondary)' }}>🍴 {project.forks}</span>
-              <span style={{ color: 'var(--text-muted)' }}>
-                Updated {timeAgo(project.updatedAt)}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span style={{ fontSize: '16px' }}>📦</span>
+                  <a
+                    href={project.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    tabIndex={-1}
+                    className="font-semibold hover:underline"
+                    style={{ color: 'var(--starship-cyan)' }}
+                  >
+                    {project.name}
+                  </a>
+                </div>
+                <p className="text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
+                  {project.description || 'No description'}
+                </p>
+                <div className="flex items-center gap-4 text-xs">
+                  {project.language && (
+                    <span className="flex items-center gap-1" style={{ color: 'var(--text-primary)' }}>
+                      <span
+                        className="inline-block w-2.5 h-2.5 rounded-full"
+                        style={{ backgroundColor: langColor(project.language) }}
+                      />
+                      {project.language}
+                    </span>
+                  )}
+                  <span style={{ color: 'var(--starship-yellow)' }}>⭐ {project.stars}</span>
+                  <span style={{ color: 'var(--text-secondary)' }}>🍴 {project.forks}</span>
+                  <span style={{ color: 'var(--text-muted)' }}>Updated {timeAgo(project.updatedAt)}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
