@@ -42,7 +42,7 @@ export default function Terminal({
   const [transitionPhase, setTransitionPhase] = useState<'idle' | 'fading'>('idle');
   const [activeSection, setActiveSection] = useState('about');
   const terminalRef = useRef<HTMLDivElement>(null);
-  const transitionTimer = useRef<ReturnType<typeof setTimeout>>();
+  const transitionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Animate mode transitions
   useEffect(() => {
@@ -60,7 +60,9 @@ export default function Terminal({
       });
     }, 150);
 
-    return () => clearTimeout(transitionTimer.current);
+    return () => {
+      if (transitionTimer.current) clearTimeout(transitionTimer.current);
+    };
   }, [mode, renderedMode]);
 
   const { projects, loading, refresh } = useGithubProjects();
@@ -137,21 +139,29 @@ export default function Terminal({
       // Update window title with command
       setCurrentCommand(parsed.command === 'menu' ? 'Menu' : (parsed.command || 'Terminal'));
 
-      // Handle mode switch from command result
-      if (result.setMode) {
-        setMode(result.setMode);
-        return;
-      }
-
       // Handle clear flag from command result
       if (result.clearOutput) {
         setOutputLines([]);
       }
 
+      // Emit output BEFORE the mode switch so the "Switching to TUI mode..."
+      // line is visible, then survives in the scrollback buffer after Esc
+      // (REQ-E3). exit/clear return earlier and are unaffected.
       if (result.output && result.output.length > 0) {
         result.output.forEach((line: string) => {
           addOutput(result.type || 'stdout', line);
         });
+      }
+
+      // Handle mode switch AFTER output (REQ-E2): apply setSection before
+      // setMode so `menu <section>` opens the TUI at the requested section and
+      // bare `menu` re-enters the last section (activeSection persists).
+      if (result.setMode) {
+        if (result.setSection) {
+          setActiveSection(result.setSection);
+        }
+        setMode(result.setMode);
+        return;
       }
 
       addOutput('stdout', '');
