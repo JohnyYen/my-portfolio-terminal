@@ -1,3 +1,5 @@
+import { KEYMAP, KEYMAP_GROUPS, SECTIONS, SECTION_IDS } from '../components/tui/keymap';
+
 export interface Project {
   name: string;
   description: string;
@@ -28,6 +30,8 @@ export interface CommandResult {
   type: 'stdout' | 'stderr' | 'info';
   clearOutput?: boolean;
   setMode?: 'terminal' | 'tui';
+  /** Optional TUI section to activate on `menu <section>` (REQ-E1/E2). */
+  setSection?: string;
 }
 
 export interface ParsedCommand {
@@ -77,72 +81,90 @@ const commands: Command[] = [
   {
     name: 'help',
     description: 'Show available commands',
-    handler: () => ({
-      output: [
-        'Available commands:',
-        '',
-        '  help          - Show this help message',
-        '  menu, gui, nav, browse — Open TUI menu',
-        '  about         - Learn about me',
-        '  projects     - Browse my pinned projects',
-        '  skills       - View my technical skills',
-        '  fetch        - Show system info (fastfetch-style)',
-        '  cv          - Download my CV',
-        '  social      - Social links',
-        '  contact     - How to reach me',
-        '  shortcuts, keys, bindings — Show keyboard shortcuts',
-        '  clear, cls  - Clear the terminal',
-        '  exit        - Exit the terminal',
-        '  whoami      - Display current user',
-        '  date        - Show current date/time',
-        '  echo        - Print text',
-        '',
-        'Shortcuts:',
-        '  Ctrl+C      - Interrupt/Cancel current input',
-        '  Ctrl+L      - Clear the terminal',
-        '  Tab         - Autocomplete command',
-        '  ↑/↓         - Command history',
-      ],
-      type: 'stdout' as const
-    })
+    handler: () => {
+      const terminalKeys = KEYMAP.filter(k => k.group === 'Terminal');
+      return {
+        output: [
+          'Available commands:',
+          '',
+          '  help                - Show this help message',
+          '  menu, gui, nav, browse [section] - Open TUI menu at a section',
+          '  sections            - List TUI sections',
+          '  about               - Learn about me',
+          '  projects            - Browse my pinned projects',
+          '  skills              - View my technical skills',
+          '  fetch               - Show system info (fastfetch-style)',
+          '  cv                  - Download my CV',
+          '  social              - Social links',
+          '  contact             - How to reach me',
+          '  shortcuts, keys, bindings - Show keyboard shortcuts',
+          '  clear, cls          - Clear the terminal',
+          '  exit                - Exit the terminal',
+          '  whoami              - Display current user',
+          '  date                - Show current date/time',
+          '  echo                - Print text',
+          '',
+          'Shortcuts:',
+          ...terminalKeys.map(kb => `  ${kb.keys.padEnd(14)} - ${kb.description}`),
+        ],
+        type: 'stdout' as const
+      };
+    }
   },
   {
     name: 'menu',
     description: 'Open TUI menu',
     aliases: ['gui', 'nav', 'browse'],
+    usage: 'menu [section]',
+    handler: (args: string[]) => {
+      const line = 'Switching to TUI mode...\n';
+      if (args.length === 0) {
+        return { output: [line], type: 'info' as const, setMode: 'tui' as const };
+      }
+      const section = args[0].toLowerCase();
+      if (SECTION_IDS.includes(section)) {
+        return {
+          output: [line],
+          type: 'info' as const,
+          setMode: 'tui' as const,
+          setSection: section,
+        };
+      }
+      return {
+        output: ['menu <about|projects|skills|social|contact|cv>'],
+        type: 'stderr' as const,
+      };
+    },
+  },
+  {
+    name: 'sections',
+    description: 'List TUI sections',
     handler: () => ({
-      output: ['Switching to TUI mode...\n'],
-      type: 'info' as const,
-      setMode: 'tui' as const
-    })
+      output: [
+        '═ TUI SECTIONS ──────────────────────────',
+        '',
+        ...SECTIONS.map((s, i) => `  ${i + 1}  ${s.id.padEnd(10)} ${s.label}`),
+        '',
+        'Use "menu <section>" to open the TUI at a specific section.',
+      ].filter(Boolean),
+      type: 'stdout' as const,
+    }),
   },
   {
     name: 'shortcuts',
     description: 'Show keyboard shortcuts',
     aliases: ['keys', 'bindings'],
-    handler: () => ({
-      output: [
-        '═ KEYBOARD SHORTCUTS ────────────────────────────',
-        '',
-        'Terminal:',
-        '  ↑/↓         - Command history',
-        '  Tab         - Autocomplete command',
-        '  Ctrl+C      - Cancel current input',
-        '  Ctrl+L      - Clear terminal',
-        '',
-        'TUI Menu (type "menu" to open):',
-        '  ↑/↓         - Navigate sections',
-        '  Enter       - Select section',
-        '  Esc         - Return to terminal',
-        '  /           - Search projects',
-        '  ?           - Show this help',
-        '',
-        'Welcome Banner:',
-        '  Click pill  - Execute command',
-        '  Type        - Dismiss banner',
-      ],
-      type: 'stdout' as const
-    })
+    handler: () => {
+      const lines: string[] = ['═ KEYBOARD SHORTCUTS ────────────────────────────', ''];
+      for (const group of KEYMAP_GROUPS) {
+        lines.push(`  ${group.title}:`);
+        for (const kb of group.items) {
+          lines.push(`    ${kb.keys.padEnd(20)} ${kb.description}`);
+        }
+        lines.push('');
+      }
+      return { output: lines.filter(Boolean), type: 'stdout' as const };
+    },
   },
   {
     name: 'about',
