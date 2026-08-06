@@ -1,45 +1,16 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-
-interface ShortcutGroup {
-  title: string;
-  shortcuts: { key: string; description: string }[];
-}
-
-const SHORTCUT_GROUPS: ShortcutGroup[] = [
-  {
-    title: 'Terminal',
-    shortcuts: [
-      { key: '↑ / ↓', description: 'Command history' },
-      { key: 'Tab', description: 'Autocomplete command' },
-      { key: 'Ctrl+C', description: 'Cancel current input' },
-      { key: 'Ctrl+L', description: 'Clear terminal' },
-    ],
-  },
-  {
-    title: 'TUI Menu',
-    shortcuts: [
-      { key: '↑ / ↓', description: 'Navigate sections' },
-      { key: 'Enter', description: 'Select / open section' },
-      { key: 'Esc', description: 'Return to terminal' },
-      { key: '/', description: 'Search projects' },
-      { key: '?', description: 'Show keyboard shortcuts' },
-    ],
-  },
-  {
-    title: 'Welcome Banner',
-    shortcuts: [
-      { key: 'Click pill', description: 'Execute command' },
-      { key: 'Type any key', description: 'Dismiss banner' },
-    ],
-  },
-];
+import { KEYMAP_GROUPS } from './keymap';
 
 interface TuiShortcutsProps {
   onClose: () => void;
 }
 
+/**
+ * Keyboard shortcuts overlay (REQ-X4). Every key string is derived from the
+ * shared KEYMAP const — no hardcoded duplicates across surfaces.
+ */
 export default function TuiShortcuts({ onClose }: TuiShortcutsProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
 
@@ -64,7 +35,7 @@ export default function TuiShortcuts({ onClose }: TuiShortcutsProps) {
       style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
         className="font-mono max-w-lg w-full rounded p-6"
         style={{
           backgroundColor: 'var(--terminal-bg-secondary)',
@@ -78,9 +49,9 @@ export default function TuiShortcuts({ onClose }: TuiShortcutsProps) {
           </span>
         </div>
 
-        {/* Groups */}
+        {/* Groups — all sourced from KEYMAP */}
         <div className="space-y-5">
-          {SHORTCUT_GROUPS.map((group) => (
+          {KEYMAP_GROUPS.map(group => (
             <div key={group.title}>
               <h3
                 className="text-xs font-semibold mb-2 uppercase tracking-wider"
@@ -89,9 +60,9 @@ export default function TuiShortcuts({ onClose }: TuiShortcutsProps) {
                 {group.title}
               </h3>
               <div className="space-y-1.5">
-                {group.shortcuts.map((item) => (
+                {group.items.map(kb => (
                   <div
-                    key={item.key}
+                    key={kb.id}
                     className="flex items-center justify-between text-sm"
                   >
                     <kbd
@@ -103,11 +74,9 @@ export default function TuiShortcuts({ onClose }: TuiShortcutsProps) {
                         fontFamily: 'var(--font-mono)',
                       }}
                     >
-                      {item.key}
+                      {kb.keys}
                     </kbd>
-                    <span style={{ color: 'var(--text-secondary)' }}>
-                      {item.description}
-                    </span>
+                    <span style={{ color: 'var(--text-secondary)' }}>{kb.description}</span>
                   </div>
                 ))}
               </div>
